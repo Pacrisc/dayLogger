@@ -1,0 +1,28 @@
+{{extend 'layout.html'}}
+
+<h2>List of days</h2>
+
+<div class='daylogger'>
+
+<button onclick="window.location.href='{{=URL(c='default',f='events')}}'" > Add events... </button>
+
+<ul class='days'>
+    {{for row in rows:}}
+        <li>
+        <a href={{=URL(c='default', f='day', args=[row.events.occured.year, row.events.occured.month, row.events.occured.day])}}>
+            {{=row.events.occured.strftime('%d %b %Y')}}
+            {{num_events =  row[count_op]}} 
+            {{if num_events>1:}} 
+                ({{=row[count_op]}} events)
+            {{else:}}
+                (1 event)
+            {{pass}}
+        </a> 
+        </li>
+    {{pass}}
+
+</ul>
+
+
+
+</div>

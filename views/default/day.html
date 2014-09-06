@@ -1,0 +1,22 @@
+{{extend 'layout.html'}}
+
+<h2>Events for {{=rows.first().occured.strftime('%d %b %Y')}}</h2>
+
+<div class='daylogger'>
+
+<button onclick="window.location.href='{{=URL(c='default',f='events')}}'" > Add events... </button>
+
+<ul class='days'>
+    {{for row in rows:}}
+        <li>
+        <a href={{=URL(c='default', f='events', args=[row.id])}}>
+            {{="{0} - {1}".format(row.occured.strftime('%I:%M %p'), row.title)}}
+        </a> 
+        </li>
+    {{pass}}
+
+</ul>
+
+
+
+</div>

@@ -1,0 +1,8 @@
+sessions/
+databases/
+errors/
+*.pyc
+progress.log
+*.swp
+uploads/
+static/temp/
