@@ -46,6 +46,7 @@
   response.files.insert(2,URL('static','css/bootstrap-responsive.min.css'))
   response.files.insert(3,URL('static','css/web2py_bootstrap.css'))
   response.files.insert(4,URL('static','css/day_logger.css'))
+  response.files.insert(5,URL('static','css/bootstrap-timepicker.min.css'))
   }}
 
   {{include 'web2py_ajax.html'}}
@@ -152,6 +153,7 @@
        (Placed at the end of the document so the pages load faster) -->
   <script src="{{=URL('static','js/bootstrap.min.js')}}"></script>
   <script src="{{=URL('static','js/web2py_bootstrap.js')}}"></script>
+  <script src="{{=URL('static','js/bootstrap-timepicker.js')}}"></script>
   <!--[if lt IE 7 ]>
       <script src="{{=URL('static','js/dd_belatedpng.js')}}"></script>
       <script> DD_belatedPNG.fix('img, .png_bg'); //fix any <img> or .png_bg background-images </script>
@@ -169,7 +171,9 @@ m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
   </script>
   <!-- End Google Analytics -->
   {{pass}}
+  <!--
   <script src="{{=URL('static','js/share.js',vars=dict(static=URL('static','images')))}}"></script>
+  -->
 </body>
 </html>
 

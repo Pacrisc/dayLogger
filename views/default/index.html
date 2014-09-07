@@ -1,22 +1,20 @@
 {{extend 'layout.html'}}
 
+
+<a class='btn btn-small pull-right' href='{{=URL(c='default',f='events',vars={'a': 'create'}, user_signature=True )}}' > Add events... </a>
 <h2>List of days</h2>
 
 <div class='daylogger'>
 
-<button onclick="window.location.href='{{=URL(c='default',f='events')}}'" > Add events... </button>
 
-<ul class='days'>
+
+<ul class='days nav nav-list'>
     {{for row in rows:}}
-        <li>
-        <a href={{=URL(c='default', f='day', args=[row.events.occured.year, row.events.occured.month, row.events.occured.day])}}>
-            {{=row.events.occured.strftime('%d %b %Y')}}
+    <li>
+    <a href={{=URL(c='default', f='day', args=[row.events.edate])}}>
+            {{=row.events.edate.strftime('%d %b %Y')}}
             {{num_events =  row[count_op]}} 
-            {{if num_events>1:}} 
-                ({{=row[count_op]}} events)
-            {{else:}}
-                (1 event)
-            {{pass}}
+            <span class="badge">{{=row[count_op]}}</span>
         </a> 
         </li>
     {{pass}}

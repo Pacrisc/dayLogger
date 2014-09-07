@@ -12,24 +12,24 @@ def index():
     if not auth.has_membership('admin'):
         q &= db.events.created_by == auth.user_id
     rows = db(q).select(db.events.ALL, count_op,
-                        groupby=db.events.occured.day())
+                        groupby=db.events.edate)
     return dict(rows=rows, count_op=count_op)
 
 
 def day():
     """
     """
-    if len(request.args) == 3:
-        year, month, day = request.args
-        q = db.events.occured.year()==year
-        q &= db.events.occured.month()==month
-        q &= db.events.occured.day()==day
+    if request.args:
+        q = db.events.edate==str2date(request.args(0))
+        
         if not auth.has_membership('admin'):
             q &= db.events.created_by == auth.user_id
-        rows = db(q).select(orderby=db.events.occured)
+        rows = db(q).select(orderby=db.events.etime)
+        #session.flash = str(str2date(request.args(0)))
+        
         return dict(rows=rows)
 
-    session.flash = 'Wrong arguments for the day page!'
+    #session.flash = 'Wrong arguments for the day page!'
     redirect(URL(c='default', f='index'))
 
 
@@ -39,23 +39,105 @@ def events():
     return dict()
 
 @auth.requires_signature()
-def event_handler():
-    if not request.args or request.vars.edit:
-        editable = True
-        fields = [field for field in db.events]
-        fields.insert(4, Field('tags','string', label='Tags'))
-        form = SQLFORM.factory(*fields,
-            formstyle='bootstrap'
-          )
-        if form.process().accepted:
-            db.events.insert(**db.events._filter_fields(form.vars))
+def form_wrapper():
+    mvars = {key: val for key, val in request.vars.iteritems()}
+    margs = []
+    table = None
+    for idx, val in enumerate(request.args):
+        if idx == 0:
+            table = val
+        else:
+            margs.append(val)
+    if table == 'event':
+        murl = {'c': 'default', 'f': 'event_handler'}
+    elif table == 'eventitem':
+        murl = {'c': 'default', 'f': 'event_item_handler'}
     else:
-        editable = False
+        murl = {}
+    return LOAD(ajax_trap=True, user_signature=True, args=margs, vars=mvars, **murl)
+
+
+#@auth.requires_signature()
+def event_item_handler():
+    if request.args:
         mid = int(request.args[0])
-        form = db.events(mid)
-        if form is None:
+    db.event_items.parent.default = mid
+    form = SQLFORM(db.event_items, formstyle='bootstrap')
+    if form.process().accepted:
+        response.flash = 'Event submitted!'
+        # just reload the whole page 
+        redirect(URL(c='default', f='events', args=[mid], vars={'a': 'show'}, user_signature=True), client_side=True)
+    elif form.errors:
+        response.flash = 'Errors in event form!'
+    return dict(form=form)
+
+
+#@auth.requires_signature()
+def event_handler():
+    d = None
+    form = None
+    rows = []
+    action = request.vars.a
+    if request.args:
+        mid = int(request.args[0])
+    else:
+        mid = None
+    if action == 'delete':
+        if mid:
+            res = db(db.events.id == mid).delete()
+            if res:
+                redirect(URL('default', 'index'), client_side=True)
+
+    elif action in ['update', 'create']:
+        if mid:
+            record = db.events(mid)
+        else:
+            record = None
+        if request.vars.day_date and not mid:
+            db.events.edate.default = str2date(request.vars.day_date)
+        form = SQLFORM(db.events, record, formstyle='bootstrap')
+        if form.process().accepted:
+            response.flash = 'Event submitted!'
+            redirect(URL(c='default', f='event_handler', args=[form.vars.id], vars={'a': 'show'}, user_signature=True))
+        elif form.errors:
+            response.flash = 'Errors in event form!'
+    elif action == 'show':
+        mid = int(request.args[0])
+        record = db.events(mid)
+        if record is None:
             response.flash = 'Something went wrong!'
-    return dict(form=BEAUTIFY(form), editable=editable)
+        rows = db(db.event_items.parent==record.id).select()
+    else:
+        raise ValueError
+    return dict(record=record, form=form, action=action, rows=rows)
+
+def jeditable_api():
+    import re
+    if request.vars.id:
+        _, field, mid = request.vars.id.split('_')
+    sanitize_int = lambda x: int(re.sub('[^0-9+\-]+', '', x))
+    sanitize = {'description': str, 'value': sanitize_int}
+    value = sanitize[field](request.vars.value) 
+    if value:
+        res = db(db.event_items.id==mid).update(**{field: value})
+        if res:
+            return value
+        else:
+            return value + '(no update)'
+    else:
+        if field == 'value':
+            return request.vars.value + ' (error: must be integer!)'
+        else:
+            return request.vars.value + '(error)'
+
+
+
+@auth.requires_signature()
+def delete_event_item():
+    mid = int(request.args[0])
+    db(db.event_items.id==mid).delete()
+    return "$('li#event_item_{0}').remove();".format(mid)
+
 
 
 

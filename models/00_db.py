@@ -8,6 +8,8 @@
 ## if SSL/HTTPS is properly configured and you want all HTTP requests to
 ## be redirected to HTTPS, uncomment the line below:
 # request.requires_https()
+from gluon.tools import prettydate
+import datetime
 
 ## if NOT running on Google App Engine use SQLite or other DB
 db = DAL('sqlite://storage.sqlite',pool_size=1,check_reserved=['mysql'])
@@ -54,17 +56,24 @@ auth.settings.reset_password_requires_verification = True
 
 hidden = {'readable': False, 'writable': False}
 
+
 db.define_table('events',
     Field('title', 'string', requires=IS_NOT_EMPTY()),
-    Field('description', 'text'),
-    Field('occured', 'datetime', requires=IS_NOT_EMPTY()),
+    Field('description', 'text', requires=IS_NOT_EMPTY()),
+    Field('edate', 'date', label='Date', requires=IS_DATE()),
+    Field('etime', 'time', label='Time', requires=IS_TIME()),
+    Field('edatetime',
+        compute=lambda r: datetime.datetime.combine(r['edate'],r['etime'])),
     auth.signature
     )
 
+db.events.edate.widget = SQLFORM.widgets.date.widget
+#db.events.etime.widget = SQLFORM.widgets.time.widget
+
 db.define_table('event_items',
-    Field('event', 'reference events', **hidden),
-    Field('description', 'text'),
-    Field('value', 'integer')
+    Field('parent', 'reference events', **hidden),
+    Field('description', 'string', requires=IS_NOT_EMPTY()),
+    Field('value', 'integer', requires=IS_NOT_EMPTY())
     )
 
 db.define_table('tags',
