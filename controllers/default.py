@@ -9,8 +9,11 @@ def index():
     """
     count_op = db.events.id.count()
     q = db.events.id>0
-    if not auth.has_membership('admin'):
+    if not is_admin:
         q &= db.events.created_by == auth.user_id
+    elif session.imp_user:
+        q &= db.events.created_by == session.imp_user.id
+
     rows = db(q).select(db.events.ALL, count_op,
                         groupby=db.events.edate)
     return dict(rows=rows, count_op=count_op)
@@ -64,9 +67,10 @@ def event_item_handler():
     db.event_items.parent.default = mid
     form = SQLFORM(db.event_items, formstyle='bootstrap')
     if form.process().accepted:
-        response.flash = 'Event submitted!'
+        session.flash = 'Event item submitted!'
         # just reload the whole page 
-        redirect(URL(c='default', f='events', args=[mid], vars={'a': 'show'}, user_signature=True), client_side=True)
+        redirect(URL(c='default', f='events', args=[mid], vars={'a': 'show'},
+                                            user_signature=True), client_side=True)
     elif form.errors:
         response.flash = 'Errors in event form!'
     return dict(form=form)
@@ -98,7 +102,8 @@ def event_handler():
         form = SQLFORM(db.events, record, formstyle='bootstrap')
         if form.process().accepted:
             response.flash = 'Event submitted!'
-            redirect(URL(c='default', f='event_handler', args=[form.vars.id], vars={'a': 'show'}, user_signature=True))
+            redirect(URL(c='default', f='event_handler', args=[form.vars.id],
+                            vars={'a': 'show'}, user_signature=True))
         elif form.errors:
             response.flash = 'Errors in event form!'
     elif action == 'show':
@@ -112,23 +117,33 @@ def event_handler():
     return dict(record=record, form=form, action=action, rows=rows)
 
 def jeditable_api():
+    """ This is not secure """
     import re
     if request.vars.id:
         _, field, mid = request.vars.id.split('_')
     sanitize_int = lambda x: int(re.sub('[^0-9+\-]+', '', x))
-    sanitize = {'description': str, 'value': sanitize_int}
-    value = sanitize[field](request.vars.value) 
-    if value:
-        res = db(db.event_items.id==mid).update(**{field: value})
+    if field in ['description', 'value']:
+        table = 'event_items'
+        sanitize = {'description': str, 'value': sanitize_int }[field]
+    elif field == 'registrationkey':
+        if not auth.has_membership('auth'):
+            field = 'registration_key' # renaming field in accordance with the db
+            table = 'auth_user'
+            sanitize = str
+        else:
+            raise ValueError('Not allowed!')
+    else:
+        raise ValueError
+        
+    value = sanitize(request.vars.value) 
+    if value or (not value and not request.vars.value):
+        res = db(db[table].id==mid).update(**{field: value})
         if res:
             return value
         else:
             return value + '(no update)'
     else:
-        if field == 'value':
-            return request.vars.value + ' (error: must be integer!)'
-        else:
-            return request.vars.value + '(error)'
+        return request.vars.value + '(error)'
 
 
 
@@ -136,9 +151,7 @@ def jeditable_api():
 def delete_event_item():
     mid = int(request.args[0])
     db(db.event_items.id==mid).delete()
-    return "$('li#event_item_{0}').remove();".format(mid)
-
-
+    return "$('tr#event_item_{0}').remove();".format(mid)
 
 
 def user():
@@ -189,3 +202,28 @@ def api():
         '<tablename>': {'GET':{},'POST':{},'PUT':{},'DELETE':{}},
         }
     return Collection(db).process(request,response,rules)
+
+@auth.requires_membership('admin')
+def user_admin():
+    db.auth_user.registration_key.readable=True
+    grid = SQLFORM.grid(db.auth_user,
+                   fields=[db.auth_user.id, db.auth_user.first_name,
+                           db.auth_user.last_name, db.auth_user.registration_key, db.auth_user.email],
+                   orderby = [~db.auth_user.id]
+                   )
+                   
+    return locals()
+
+@auth.requires_membership('admin')
+def impersonate():
+    if request.vars.uid:
+        uid = int(request.vars.uid)
+        session.imp_user = db(db.auth_user.id == uid).select().first()
+        if not session.imp_user:
+            raise ValueError
+        redirect(URL('default', 'index'))
+    else:
+        if session.imp_user:
+            del session.imp_user
+            redirect(URL('default', 'user_admin'))
+

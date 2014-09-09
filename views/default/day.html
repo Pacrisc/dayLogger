@@ -17,6 +17,9 @@
         <li>
         <a href={{=URL(c='default', f='events', args=[row.id], vars={'a': 'show'})}}>
             {{="{0} - {1}".format(row.etime.strftime('%I:%M %p'), row.title)}}
+            {{if is_admin and not session.imp_user:}}
+            [{{=row.created_by.email}}]
+            {{pass}}
         </a> 
         </li>
     {{pass}}

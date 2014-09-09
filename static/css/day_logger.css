@@ -20,7 +20,7 @@ div.daylogger .days{
 }
 
 div.daylogger ul.days {
-    max-width: 400px;
+    /*max-width: 400px;*/
 }
 
 div.daylogger ul.days .badge{

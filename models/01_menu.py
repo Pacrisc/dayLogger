@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # this file is released under public domain and you can use without limitations
+from gluon.tools import Wiki
+
 
 #########################################################################
 ## Customize your APP title, subtitle and menus here
@@ -29,9 +31,26 @@ response.menu = [
     (T('Home'), False, URL('default', 'index'), [])
 ]
 
+is_admin = auth.has_membership('admin')
+
+if is_admin:
+    response.menu.append(('User Admin', False, URL('default', 'user_admin'), []))
+
+
+
+if session.imp_user:
+    response.menu.append(('Stop impersonating ({0})'.format(session.imp_user.email), False, URL('default', 'impersonate'), []))
+
+
+
+
+
+
+
 
 #########################################################################
 ## provide shortcuts for development. remove in production
 #########################################################################
 
 if "auth" in locals(): auth.wikimenu() 
+

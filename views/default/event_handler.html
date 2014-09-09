@@ -50,25 +50,45 @@
             </div>
         <h3 > <button type="button" class="btn btn-info">{{=record.edate.strftime('%d %b %Y')}}  {{=record.etime.strftime('%I:%M %p')}}</button>  {{=record.title}}</h3>
         <div class='auth_info'> 
-            <span class='last_modified'> Created {{=prettydate(record.created_on, T)}}, last modified {{=prettydate(record.modified_on, T)}} </span>
+            {{if is_admin:}}
+            <span class='last_modified'> Created {{=prettydate(record.created_on, T)}} by {{=record.created_by.email}}, last modified {{=prettydate(record.modified_on, T)}} by {{=record.modified_by.email}} </span>
+            {{else:}}
+            <span class='last_modified'> Created {{=prettydate(record.created_on, T)}}, last modified {{=prettydate(record.modified_on, T)}}</span>
+            {{pass}}
+
         </div/>
         <div id='event_description'>
             {{=record.description}}
         </div>
         <a class='btn btn-small pull-right' href='javascript:void(0);' onclick="ajax('{{=URL(c='default',f='form_wrapper', vars={'a': 'update'}, args=['eventitem' , str(record.id)], user_signature=True)}}', [], 'new_event_item');"> Add items... </a>
-        <h5> Event items </h5>
+        <h4> Event items </h4>
 
         <div id='new_event_item'>
         </div>
-        <ul id='event_items'>
+        {{if rows:}}
+        <table id='event_items' class='table table-striped'>
+            <thead>
+            <tr>
+                <th>Description</th>
+                <th>Value</th>
+                <th>Tags</th>
+                <th>Delete</th>
+            </tr>
+            </thead>
+            <tbody>
             {{for row in rows:}}
-            <li id='event_item_{{=row.id}}'> <span class='ei_description' id='ei_description_{{=row.id}}'> {{=row.description}}</span> - Value: <span class='ei_value' id='ei_value_{{=row.id}}'>{{=row.value}} </span>
-           
-            <a class='btn btn-mini' href='javascript:void(0);' onclick="ajax('{{=URL(c='default', f='delete_event_item', args=[row.id], user_signature=True)}}', [], ':eval')"> 
+                <tr id='event_item_{{=row.id}}'>
+                    <td class='ei_description' id='ei_description_{{=row.id}}'> {{=row.description}}</td>
+                    <td class='ei_value' id='ei_value_{{=row.id}}'>{{=row.value}} </td>
+                    <td> </td>
+                    <td> <a class='btn btn-mini' href='javascript:void(0);' onclick="ajax('{{=URL(c='default', f='delete_event_item', args=[row.id], user_signature=True)}}', [], ':eval')"> 
                 <i class="icon-trash"></i></a>
-            </li>
+                    </td>
+            </tr>
             {{pass}}
-        </ul>
+            </tbody>
+        </table>
+        {{pass}}
         <script type='text/javascript' >
             $(function() {
                     $('.ei_description').editable("{{=URL(c='default', f='jeditable_api')}}",{
