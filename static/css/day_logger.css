@@ -63,3 +63,38 @@ ul.breadcrumb > li:before{
 
 #event_items li span {
 }
+
+
+/* token input */
+
+ul.token-input-list li {
+    float: left;
+}
+
+/* Overwriting some properties of token-input */
+
+ul.token-input-list {
+    background-color: transparent !important;
+    border: none !important; 
+    width: auto !important;
+}
+
+ul.token-input-list li input {
+    width: 50px !important;
+
+}
+
+
+li.token-input-token {
+    background-color: #D9EDF7 !important;
+    font-weight: normal !important;
+}
+
+.dl-outer-tag_events div {
+    float: left;
+}
+
+.dl-outer-tag_events {
+    margin: 0.5em 0;
+
+}

@@ -1,0 +1,28 @@
+<div id='{{=form_name}}' class='dl-outer-{{=table}}'> 
+    {{if table == 'tag_events':}}
+    <div style='margin-top: 5px;'> Tags: </div> 
+    {{pass}}
+    <div> 
+    <input type="text" class="form-control input-mini" />
+    </div>
+</div>
+<div style='clear: both'> </div>
+
+<script type="text/javascript">
+{{from gluon.serializers import json}}
+$(document).ready(function () {
+        $("#{{=form_name}} input.form-control").tokenInput(
+                "{{=URL(c='api', f='autocomplete_tags.json', vars={'table': table, 'parent_id': parent_id})}}", 
+                {
+                jsonContainer: 'data',
+                preventDuplicates: true,
+                minChars: 2,
+                prePopulate: {{=XML(json(prepopulate_tags))}},
+                onAdd: function(item) {
+                    ajax("{{=URL(c='api', f='manage_tags', args=['add'], vars={'table': table, 'parent_id': parent_id, 'tag_id': ''})}}" + item.id, [], ':eval');
+                    }
+                });
+
+});
+</script>
+

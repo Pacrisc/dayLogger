@@ -27,6 +27,8 @@ def day():
         
         if not auth.has_membership('admin'):
             q &= db.events.created_by == auth.user_id
+        elif session.imp_user:
+            q &= db.events.created_by == session.imp_user.id
         rows = db(q).select(orderby=db.events.etime)
         #session.flash = str(str2date(request.args(0)))
         
@@ -116,36 +118,6 @@ def event_handler():
         raise ValueError
     return dict(record=record, form=form, action=action, rows=rows)
 
-def jeditable_api():
-    """ This is not secure """
-    import re
-    if request.vars.id:
-        _, field, mid = request.vars.id.split('_')
-    sanitize_int = lambda x: int(re.sub('[^0-9+\-]+', '', x))
-    if field in ['description', 'value']:
-        table = 'event_items'
-        sanitize = {'description': str, 'value': sanitize_int }[field]
-    elif field == 'registrationkey':
-        if not auth.has_membership('auth'):
-            field = 'registration_key' # renaming field in accordance with the db
-            table = 'auth_user'
-            sanitize = str
-        else:
-            raise ValueError('Not allowed!')
-    else:
-        raise ValueError
-        
-    value = sanitize(request.vars.value) 
-    if value or (not value and not request.vars.value):
-        res = db(db[table].id==mid).update(**{field: value})
-        if res:
-            return value
-        else:
-            return value + '(no update)'
-    else:
-        return request.vars.value + '(error)'
-
-
 
 @auth.requires_signature()
 def delete_event_item():
@@ -214,16 +186,4 @@ def user_admin():
                    
     return locals()
 
-@auth.requires_membership('admin')
-def impersonate():
-    if request.vars.uid:
-        uid = int(request.vars.uid)
-        session.imp_user = db(db.auth_user.id == uid).select().first()
-        if not session.imp_user:
-            raise ValueError
-        redirect(URL('default', 'index'))
-    else:
-        if session.imp_user:
-            del session.imp_user
-            redirect(URL('default', 'user_admin'))
 
