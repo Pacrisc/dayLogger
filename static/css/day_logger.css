@@ -98,3 +98,7 @@ li.token-input-token {
     margin: 0.5em 0;
 
 }
+
+#photo-container .span2 {
+    margin-bottom: 0.5em;
+}

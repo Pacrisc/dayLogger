@@ -39,8 +39,8 @@ auth = Auth(db)
 service = Service()
 plugins = PluginManager()
 
-plugins.wiki.level = 2
-plugins.wiki.editor = False
+# plugins.wiki.level = 2
+# plugins.wiki.editor = False
 
 ## create all tables needed by auth if not custom tables
 auth.define_tables(username=False, signature=False)
@@ -83,7 +83,6 @@ db.define_table('tags',
     Field('name', 'string', requires=IS_NOT_EMPTY())
     )
 
-
 db.define_table('tag_events',
     Field('parent', 'reference events'),
     Field('tag', 'reference tags'))
@@ -92,27 +91,20 @@ db.define_table('tag_event_items',
     Field('parent', 'reference event_items'),
     Field('tag', 'reference tags'))
 
-
-
-# uncomment to prepopulate tags
-#if not db(db.tags).count():
-#    tag_list = ['work', 'sleep', 'sport', 'rest', 'other']
-#    for tag in tag_list:
-#        db.tags.insert(name=tag)
+# prepopulate tags table
+if not db(db.tags).count():
+    with open('./applications/dayLogger/modules/nounlist.txt', 'r') as f:
+        for line in f:
+            db.tags.insert(name=line.strip())
 
 db.define_table('pictures',
-    Field('data', 'upload'),
-    Field('size', 'list:integer'),
+    Field('name','string'),
+    Field('mainfile','upload'),
+    Field('size', 'list:integer', **hidden),
+    Field('thumb','upload', **hidden),
+    Field('event', 'reference events', **hidden),
     auth.signature
     )
-
-#db.define_table('uploads',
-#    Field('name','string'),
-#    Field('mainfile','upload'),
-#    Field('thumb','upload',writable=False,readable=False),
-#    )
-
-
 
 ## if you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.
 ## register with janrain.com, write your domain:api_key in private/janrain.key

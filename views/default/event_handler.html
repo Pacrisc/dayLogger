@@ -60,6 +60,9 @@
         <div id='event_description'>
             {{=record.description}}
         </div>
+        {{=LOAD(c='images', f='uploadimage',vars={'parent_id': record.id}, ajax=False)}}
+
+
         {{=LOAD(c='api',f='tags', vars={'table': 'tag_events', 'parent_id': record.id},  user_signature=True, ajax=True)}}
         <a class='btn btn-small pull-right' href='javascript:void(0);' onclick="ajax('{{=URL(c='default',f='form_wrapper', vars={'a': 'update'}, args=['eventitem' , str(record.id)], user_signature=True)}}', [], 'new_event_item');"> Add items... </a>
         <h4> Event items </h4>
@@ -104,7 +107,7 @@
                     $('.ei_value').editable("{{=URL(c='api', f='jeditable')}}",{
                         submit  : 'OK',
                         type : 'text',
-                        width: 100,
+                        //width: 100,
                         cssclass: 'form-inline'
                         });
             });

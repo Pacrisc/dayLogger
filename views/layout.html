@@ -48,7 +48,7 @@
   response.files.insert(4,URL('static','css/day_logger.css'))
   response.files.insert(5,URL('static','css/bootstrap-timepicker.min.css'))
   response.files.insert(6,URL('static','css/token-input.css'))
-  #response.files.insert(6,URL('static','css/jquery.dataTables.min.css'))
+  response.files.insert(7,URL('static','css/fancybox/jquery.fancybox.css'))
   }}
 
   {{include 'web2py_ajax.html'}}
@@ -60,6 +60,7 @@
   middle_columns = {0:'span12',1:'span9',2:'span6'}[
     (left_sidebar_enabled and 1 or 0)+(right_sidebar_enabled and 1 or 0)]
   }}
+
 
   <!-- uncomment here to load jquery-ui
        <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/ui-lightness/jquery-ui.css" type="text/css" media="all" />

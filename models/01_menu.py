@@ -39,7 +39,7 @@ if is_admin:
 
 
 if session.imp_user:
-    response.menu.append(('Stop impersonating ({0})'.format(session.imp_user.email), False, URL('default', 'impersonate'), []))
+    response.menu.append(('Stop impersonating ({0})'.format(session.imp_user.email), False, URL('api', 'impersonate'), []))
 
 
 

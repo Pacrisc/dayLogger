@@ -1,0 +1,44 @@
+
+<div id='photo-control'> <a href='javascript:void(0);'>Upload pictures</a> </div>
+<div id='photo-upload'>
+{{=form}}
+</div>
+
+{{#=BEAUTIFY(plist)}}
+
+<div class="container" id='photo-container'>
+    <div class="row">
+        {{idx = 0}}
+        {{for row in plist:}} 
+        <div class="span2">
+            <a href="{{=URL(c='default', f='download', args=[str(row.mainfile)])}}" class='fancybox thumbnail'>
+                <img src="{{=URL(c='default', f='download', args=[str(row.mainfile)])}}" alt="{{=row.name}}" rel='group'>
+            </a>
+        </div>
+        {{idx+=1}}
+        {{if idx % 3 == 0:}}
+    </div>
+    <div class="row">
+        {{pass}}
+        {{pass}}
+    </div>
+</div>
+
+
+
+<script type='text/javascript' > 
+ $(function() { 
+        $('#photo-upload form').ajaxForm( {
+                dataType: 'script',
+                url: "{{=URL(c='images', f='uploadimage', scheme=True, vars={'parent_id': parent_id})}}"
+        }); 
+
+        $("#photo-container .span2 a").fancybox();
+        $('#photo-upload').hide()
+        $('#photo-control').click(function(){
+            $('#photo-upload').toggle()
+            });
+
+}); 
+
+</script>

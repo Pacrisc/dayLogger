@@ -20,7 +20,11 @@ $(document).ready(function () {
                 prePopulate: {{=XML(json(prepopulate_tags))}},
                 onAdd: function(item) {
                     ajax("{{=URL(c='api', f='manage_tags', args=['add'], vars={'table': table, 'parent_id': parent_id, 'tag_id': ''})}}" + item.id, [], ':eval');
+                    },
+                onDelete: function(item) {
+                    ajax("{{=URL(c='api', f='manage_tags', args=['delete'], vars={'table': table, 'parent_id': parent_id, 'tag_id': ''})}}" + item.id, [], ':eval');
                     }
+
                 });
 
 });

@@ -45,7 +45,7 @@ def manage_tags():
         res = db[table].insert(parent=parent_id, tag=tag_id)
     elif action == 'delete':
         q = (db[table].parent==parent_id)
-        q &= (db[table].tag_id==tag_id)
+        q &= (db[table].tag==tag_id)
         res = db(q).delete()
     return res
 
