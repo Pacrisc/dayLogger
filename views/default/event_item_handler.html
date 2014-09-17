@@ -1,0 +1,18 @@
+
+{{=form}}
+
+<script type='text/javascript' >
+    $(function() {
+       //$('#new_event_item form').addClass('form-inline')
+       //                      .removeClass('form-horizontal');
+
+       $('input#event_items_description').removeClass('span4')
+                                        .addClass('input-large');
+       $('input#event_items_value').removeClass('span4')
+                                        .addClass('input-mini');
+
+       // Hacking the default web2py form to put date and time inputs on the same row 
+       //$("#dl_event_form #submit_record__row").before("<div id='events_edatetime__row' class='control-group'></div>");
+       //$('#events_edatetime__row').html($('#events_edate__row').html() + $('#events_etime__row').html());
+    });
+</script>

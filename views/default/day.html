@@ -1,0 +1,42 @@
+{{extend 'layout.html'}}
+
+<ul class="breadcrumb">
+    <li><a href="{{=URL(c='default', f='index')}}">Home</a></li>
+    <li class='active'>{{=rows.first().edate.strftime('%d %b %Y')}}</li>
+</ul>
+
+<a class='btn btn-small pull-right' href='{{=URL(c='default',f='events', vars={'a': 'create', 'day_date': str(rows.first().edate) })}}' > Add events... </a>
+<h2>Events for {{=rows.first().edate.strftime('%d %b %Y')}}</h2>
+
+<div class='daylogger'>
+
+
+
+<ul class='days nav nav-list'>
+    {{for row in rows:}}
+        <li>
+        <a href={{=URL(c='default', f='events', args=[row.id], vars={'a': 'show'})}}>
+            {{="{0} - {1}".format(row.etime.strftime('%I:%M %p'), row.title)}}
+            {{if is_admin and not session.imp_user:}}
+            [{{=row.created_by.email}}]
+            {{pass}}
+        </a> 
+        </li>
+    {{pass}}
+
+</ul>
+
+
+
+
+<!--
+<ul class="pager">
+
+    <li class="previous"><a href="#">&larr; Previous</a></li>
+    <li class="next"><a href="#">Next &rarr;</a></li>
+
+</ul>
+-->
+
+
+</div>

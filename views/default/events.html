@@ -1,0 +1,5 @@
+{{extend 'layout.html'}}
+
+<div class='daylogger'>
+    {{=LOAD(c='default', f='event_handler', args=request.args, vars={'a': request.vars.a, 'day_date': str(request.vars.day_date)}, ajax=True, user_signature=True)}}
+</div>
