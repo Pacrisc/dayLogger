@@ -34,12 +34,17 @@ response.menu = [
 is_admin = auth.has_membership('admin')
 
 if is_admin:
-    response.menu.append(('User Admin', False, URL('default', 'user_admin'), []))
+    admin_menu = ('Admin', False, URL('madmin', 'users'), 
+                    [('Users', False, URL('madmin', 'users')),
+                     ('Tags', False, URL('madmin', 'tags')),])
+
+    response.menu.append(admin_menu)
+    if session.imp_user:
+        response.menu.append(
+            ('Stop impersonating ({0})'.format(session.imp_user.email), False, URL('madmin', 'impersonate'), []))
 
 
 
-if session.imp_user:
-    response.menu.append(('Stop impersonating ({0})'.format(session.imp_user.email), False, URL('api', 'impersonate'), []))
 
 
 

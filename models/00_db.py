@@ -91,11 +91,6 @@ db.define_table('tag_event_items',
     Field('parent', 'reference event_items'),
     Field('tag', 'reference tags'))
 
-# prepopulate tags table
-if not db(db.tags).count():
-    with open('./applications/dayLogger/modules/nounlist.txt', 'r') as f:
-        for line in f:
-            db.tags.insert(name=line.strip())
 
 db.define_table('pictures',
     Field('name','string'),

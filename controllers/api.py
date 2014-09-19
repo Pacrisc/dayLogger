@@ -4,18 +4,6 @@
 if not auth.user:
     redirect(URL(c='default', f='user', args=['login']))
 
-@auth.requires_membership('admin')
-def impersonate():
-    if request.vars.uid:
-        uid = int(request.vars.uid)
-        session.imp_user = db(db.auth_user.id == uid).select().first()
-        if not session.imp_user:
-            raise ValueError
-        redirect(URL('default', 'index'))
-    else:
-        if session.imp_user:
-            del session.imp_user
-            redirect(URL('default', 'user_admin'))
 
 @auth.requires_signature()
 def tags():
@@ -95,3 +83,5 @@ def autocomplete_tags():
         #        if q in tag_name:
         #            out.append({'id': -idx, 'name': tag_name})
     return dict(data=out)
+
+

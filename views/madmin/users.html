@@ -18,7 +18,7 @@
         });
        $('.web2py_htmltable tbody td:nth-child(6)').each(function( i ) { 
            var parent_id = $(this).parent().attr('id')
-           $(this).append("<a class='btn btn-small' href='{{=URL('api', 'impersonate', vars={'uid': ''})}}" + parent_id + "'> impersonate </a>" );
+           $(this).append("<a class='btn btn-small' href='{{=URL('madmin', 'impersonate', vars={'uid': ''})}}" + parent_id + "'> impersonate </a>" );
         });
 
        $('.registration_key-field').editable("{{=URL(c='api', f='jeditable')}}",{

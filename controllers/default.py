@@ -175,15 +175,5 @@ def api():
         }
     return Collection(db).process(request,response,rules)
 
-@auth.requires_membership('admin')
-def user_admin():
-    db.auth_user.registration_key.readable=True
-    grid = SQLFORM.grid(db.auth_user,
-                   fields=[db.auth_user.id, db.auth_user.first_name,
-                           db.auth_user.last_name, db.auth_user.registration_key, db.auth_user.email],
-                   orderby = [~db.auth_user.id]
-                   )
-                   
-    return locals()
 
 
