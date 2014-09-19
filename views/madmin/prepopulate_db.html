@@ -1,0 +1,13 @@
+{{extend 'layout.html'}}
+
+
+<h2>Admin: prepopulate</h2>
+
+
+<h4> Prepopulated DB </h4>
+
+<a class='btn btn-small pull-right' href='{{=URL(c='madmin',f='prepopulate_db_api', user_signature=True)}}' >Prepopulate db</a>
+<div>
+    Fill database with fake data for testing purposes and check that the visualization works as expected. <br /> This will take up to 1 min and you will be automatically redirected to the home page at completion. <br />
+    <div class="alert alert-warning" role="alert">Do not use this action on an application with existing real users!</div>
+</div>

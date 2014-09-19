@@ -36,7 +36,8 @@ is_admin = auth.has_membership('admin')
 if is_admin:
     admin_menu = ('Admin', False, URL('madmin', 'users'), 
                     [('Users', False, URL('madmin', 'users')),
-                     ('Tags', False, URL('madmin', 'tags')),])
+                     ('Tags', False, URL('madmin', 'tags')),
+                     ('Prepopulate DB', False, URL('madmin', 'prepopulate_db')),])
 
     response.menu.append(admin_menu)
     if session.imp_user:
