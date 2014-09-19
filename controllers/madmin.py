@@ -56,7 +56,7 @@ def prepopulate_db():
 def prepopulate_db_api():
     # this prepopulates database (including auth_user) with random data
     # necessary to work on visualizations (need something to visualize)
-    from applications.dayLogger.modules.pypsum import get_lipsum
+    from pypsum import get_lipsum
     import random
     import string
 
@@ -106,7 +106,7 @@ def prepopulate_db_api():
 
             for event_item_idx in range(random.randint(1,N_event_items)):
                 event_item_id = db.event_items.insert(parent=event_id, 
-                                                      description=random_string(10, string.letters + ' '),
+                                                      description=random_string(10, string.letters + ' '*15),
                                                       value=random.randint(0,100))
                 for tag_idx in range(random.randint(1,N_tags_per_item)):
                     db.tag_event_items.insert(parent=event_item_id, tag=random.randint(1,N_avail_tags))

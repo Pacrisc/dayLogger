@@ -10,6 +10,7 @@
 # request.requires_https()
 from gluon.tools import prettydate
 import datetime
+from imageutils import THUMB
 
 ## if NOT running on Google App Engine use SQLite or other DB
 db = DAL('sqlite://storage.sqlite',pool_size=1,check_reserved=['mysql'])
@@ -100,6 +101,7 @@ db.define_table('pictures',
     Field('event', 'reference events', **hidden),
     auth.signature
     )
+db.pictures.thumb.compute = lambda row: THUMB(row.mainfile, 200, 200)
 
 ## if you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.
 ## register with janrain.com, write your domain:api_key in private/janrain.key
