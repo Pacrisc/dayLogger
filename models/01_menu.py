@@ -28,7 +28,8 @@ response.google_analytics_id = None
 #########################################################################
 
 response.menu = [
-    (T('Home'), False, URL('default', 'index'), [])
+    (T('Home'), False, URL('default', 'index'), []),
+    (T('Visualize'), False, URL('viz', 'index'), [])
 ]
 
 is_admin = auth.has_membership('admin')

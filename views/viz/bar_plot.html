@@ -1,0 +1,35 @@
+<h4> All time statistics </h4>
+
+<div id='bar-plot-stats'>
+<svg style='height: 500px; width: 100%'>
+
+</svg>
+</div>
+
+<script type='text/javascript' >
+    $(function() {
+        d3.json("{{=URL(c='viz', f='bar_plot_data.json')}}", function(data) {
+          nv.addGraph(function() {
+            var chart = nv.models.multiBarHorizontalChart()
+                .x(function(d) { return d.label })
+                .y(function(d) { return d.value })
+                .margin({top: 30, right: 20, bottom: 50, left: 120})
+                .showValues(true)           //Show bar value next to each bar.
+                .tooltips(true)             //Show tooltips on hover.
+                .transitionDuration(350)
+                .showControls(false);        //Allow user to switch between "Grouped" and "Stacked" mode.
+
+            chart.yAxis
+                .tickFormat(d3.format(',.0f'));
+
+            d3.select('#bar-plot-stats svg')
+                .datum(data)
+                .call(chart);
+
+            nv.utils.windowResize(chart.update);
+
+            return chart;
+          });
+        });
+});
+</script>

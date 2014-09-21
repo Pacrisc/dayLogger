@@ -1,0 +1,11 @@
+{{ response.files.append(URL('static', 'js/d3.js'))
+    response.files.append(URL('static', 'js/nv.d3.js'))
+    }}
+{{extend 'layout.html'}}
+
+
+<h2> Data analysis </h2>
+
+<div class='daylogger'>
+    {{=LOAD(c='viz', f='bar_plot', user_signature=True)}} 
+</div>
