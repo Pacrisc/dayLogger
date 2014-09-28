@@ -13,4 +13,14 @@ def str2date(date_str):
         return None
 
 
+def has_item_permission(row):
+    if is_admin or not row:
+        return True
+    elif row.created_by == auth.user.id or row.modified_by == auth.user.id:
+        return True
+    else:
+        return False
+
+
+
 
