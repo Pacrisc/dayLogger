@@ -12,8 +12,8 @@ from gluon.tools import prettydate
 import datetime
 from imageutils import THUMB
 
-## if NOT running on Google App Engine use SQLite or other DB
-db = DAL('sqlite://storage.sqlite',pool_size=1,check_reserved=['mysql'])
+db = DAL('mysql://web2py:pheen3zoog4Uboojiilo@localhost/daylogger',             #'sqlite://storage.sqlite',
+        pool_size=1,check_reserved=['mysql'])
 
 ## by default give a view/generic.extension to all actions from localhost
 ## none otherwise. a pattern can be 'controller/function.extension'

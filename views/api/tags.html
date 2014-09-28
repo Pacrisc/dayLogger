@@ -14,7 +14,7 @@ $(document).ready(function () {
         $("#{{=form_name}} input.form-control").tokenInput(
                 "{{=URL(c='api', f='autocomplete_tags.json', vars={'table': table, 'parent_id': parent_id})}}", 
                 {
-                jsonContainer: 'data',
+                //jsonContainer: 'data',
                 preventDuplicates: true,
                 minChars: 2,
                 prePopulate: {{=XML(json(prepopulate_tags))}},

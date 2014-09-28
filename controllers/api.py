@@ -71,17 +71,10 @@ def autocomplete_tags():
     out = []
     if request.vars.q and request.vars.parent_id:
         q = re.sub('\W+', '', request.vars.q).lower()
-        #db_q = db.tags.name.contains(q)
         rows  = db(db.tags.name.contains(q)).select()
         if rows:
             for row in rows:
                 out.append({'id': row.id, 'name': row.name})
-        #else:
-        #    # new tag in database, nothing matched, look into an external dict
-        #    tag_list = ['sleep', 'food', 'work']
-        #    for idx, tag_name in enumerate(tag_list):
-        #        if q in tag_name:
-        #            out.append({'id': -idx, 'name': tag_name})
     return dict(data=out)
 
 
