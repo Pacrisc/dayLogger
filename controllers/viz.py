@@ -2,12 +2,44 @@
 # -*- coding: utf-8 -*-
 from gluon.serializers import json
 
+if not auth.user:
+    redirect(URL(c='default', f='user', args=['login']))
+
 def index():
     return dict()
 
 
 def bar_plot():
     return dict()
+
+def scatter_plot():
+    return dict()
+
+def scatter_plot_data():
+    user_id = auth.user.id
+    res = db_query_as_dict(user_id, begin_date, end_date, tags)
+
+
+def api():
+    strptime = datetime.datetime.strptime
+    DATE_FMT = '%Y-%m-%d'
+    user_id = None
+    begin_date = None
+    end_date = None
+    tags = None
+    if request.vars.user_id:
+        user_id = int(request.vars.user_id)
+    if request.vars.begin_date:
+        begin_date = strptime(request.vars.begin_date, DATE_FMT)
+    if request.vars.end_date:
+        end_date = strptime(request.vars.end_date, DATE_FMT)
+    if request.vars.tags:
+        tags = request.vars.tags.spit(',')
+
+    res = db_query_as_dict(user_id, begin_date, end_date, tags)
+
+    return dict(data=res)
+
 
 def bar_plot_data():
     d = []
