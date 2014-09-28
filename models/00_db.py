@@ -66,8 +66,8 @@ db.define_table('events',
     Field('description', 'text', requires=IS_NOT_EMPTY()),
     Field('edate', 'date', label='Date', requires=IS_DATE()),
     Field('etime', 'time', label='Time', requires=IS_TIME()),
-    Field('edatetime',
-        compute=lambda r: datetime.datetime.combine(r['edate'],r['etime'])),
+    Field('edatetime', compute=lambda r: datetime.datetime.combine(r['edate'],r['etime'])),
+    #Field('edatetime2s', compute=lambda r: r['edatetime'].strftime('%s') ),
     auth.signature
     )
 

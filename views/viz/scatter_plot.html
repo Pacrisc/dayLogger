@@ -1,0 +1,49 @@
+<h4> Time line statistics </h4>
+
+<div id='scatter-plot-stats'>
+<svg style='height: 500px; width: 100%'>
+
+</svg>
+</div>
+<script type='text/javascript' >
+d3.json("{{=URL(c='viz', f='scatter_plot_data.json')}}", function(data) {
+    nv.addGraph(function() {
+      var chart = nv.models.scatterChart()
+                    .showDistX(true)    //showDist, when true, will display those little distribution lines on the axis.
+                    .showDistY(true)
+                    //.showLegend(false)
+                    .transitionDuration(350)
+                    .color(d3.scale.category10().range())
+                    .size(1).sizeRange([50,50]);;
+
+      //Configure how the tooltip looks.
+      //chart.tooltipContent(function(key) {
+      //    return  key ;
+      //});
+        chart.tooltipContent(function(key, x, y, obj) {
+            //console.log(arguments);
+            return '<div> Event: ' + key +'<br /> Item: <em>' +  obj.point.label + '</em></div>';
+        });
+
+      chart.xAxis.orient("bottom")
+                 .tickFormat(function(d) { 
+                            return d3.time.format('%d %b %H:%M')(new Date(d)) 
+                            });
+
+      chart.yAxis.tickFormat(d3.format('.00f'));
+
+      //We want to show shapes other than circles.
+      chart.scatter.onlyCircles(false);
+
+      d3.select('#scatter-plot-stats svg')
+          .datum(data)
+          .call(chart);
+
+      nv.utils.windowResize(chart.update);
+
+      return chart;
+    });
+});
+</script>
+
+

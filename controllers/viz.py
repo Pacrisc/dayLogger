@@ -5,6 +5,9 @@ from gluon.serializers import json
 if not auth.user:
     redirect(URL(c='default', f='user', args=['login']))
 
+DATE_FMT = '%Y-%m-%d'
+strptime = datetime.datetime.strptime
+
 def index():
     return dict()
 
@@ -16,13 +19,38 @@ def scatter_plot():
     return dict()
 
 def scatter_plot_data():
-    user_id = auth.user.id
+    from itertools import cycle
+    import calendar
+
+    if session.imp_user:
+        user_id = session.imp_user.id
+    else:
+        user_id = auth.user.id
+
+    begin_date = None
+    end_date = None
+    tags = None
+
     res = db_query_as_dict(user_id, begin_date, end_date, tags)
+
+    shapes = cycle(['circle', 'cross', 'triangle-up', 'triangle-down', 'diamond', 'square'])
+    data = []
+    for row in res:
+        values = []
+        for item in row['items']:
+            out = {}
+            edate = strptime(row['edatetime'], '%Y-%m-%d %H:%M:%S')
+
+            out['x'] = calendar.timegm(edate.utctimetuple())*1000
+            out['y'] = item['value']
+            out['label'] = item['description']
+            out['shape'] = shapes.next()
+            values.append(out)
+        data.append({'key': row['title'], 'values': values, 'tags': row['tags']}) 
+    return dict(data=data)
 
 
 def api():
-    strptime = datetime.datetime.strptime
-    DATE_FMT = '%Y-%m-%d'
     user_id = None
     begin_date = None
     end_date = None
@@ -42,6 +70,7 @@ def api():
 
 
 def bar_plot_data():
+    """ This is a very preliminary case """
     d = []
     user_id = session.imp_user and session.imp_user.id or auth.user.id
 

@@ -36,6 +36,7 @@ def db_query_as_dict(user_id=None, begin_date=None, end_date=None, tags=None):
        - user_id: int: for exemple auth_user.id
        - beging_date, end_date: date:  date  interval
        - tags: list of tags
+       - datatime2s: convert datetime to seconds since origin
     """
     q = db.event_items.parent==db.events.id
     if begin_date:
@@ -52,8 +53,8 @@ def db_query_as_dict(user_id=None, begin_date=None, end_date=None, tags=None):
     events_id = db(q).select(db.events.id, groupby=db.events.id).as_dict().keys()
 
     q = db.events.id.belongs(events_id)
-    events = db(q).select(db.events.id, db.events.title, db.events.edate,
-            db.events.etime, db.events.edatetime, db.events.created_by).as_dict()
+    events = db(q).select(db.events.id, db.events.title,
+            db.events.edatetime, db.events.created_by).as_dict()
 
     for eid, event in events.iteritems():
         sub_q =  (db.tag_events.parent==eid) & (db.tags.id==db.tag_events.tag)
