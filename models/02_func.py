@@ -23,7 +23,7 @@ def has_item_permission(row):
 
 def db_query_as_dict(user_id=None, begin_date=None, end_date=None, tags=None):
     """
-    Stich together various tables and return data in a nested dict structure
+    Stitch together various tables and return data in a nested dict structure
     for visualization. 
 
     This prototype version uses nested querries (not efficient, not scalable etc..) ->
@@ -47,7 +47,11 @@ def db_query_as_dict(user_id=None, begin_date=None, end_date=None, tags=None):
         q &= (db.events.created_by==user_id) 
 
     if tags:
+        tags_ids = db(db.tags.name.belongs(tags)).select().as_dict().keys()
         q &= db.tag_event_items.parent==db.event_items.id
+        q &= db.tag_events.parent==db.events.id
+        q &= (db.tag_events.tag.belongs(tags_ids) | db.tag_event_items.tag.belongs(tags_ids))
+
 
     # get id of all the events in the query
     events_id = db(q).select(db.events.id, groupby=db.events.id).as_dict().keys()

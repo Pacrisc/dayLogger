@@ -62,7 +62,7 @@ def api():
     if request.vars.end_date:
         end_date = strptime(request.vars.end_date, DATE_FMT)
     if request.vars.tags:
-        tags = request.vars.tags.spit(',')
+        tags = request.vars.tags.split(',')
 
     res = db_query_as_dict(user_id, begin_date, end_date, tags)
 
