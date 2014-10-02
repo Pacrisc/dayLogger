@@ -1,14 +1,76 @@
+
+
+<h4> Filter options </h4>
+<form class="form-inline filter-form" style='margin-left: 2em;'>
+   <div class="form-group">
+      <label for="begin_date" style='min-width: 5em;' >Begin date</label>
+      <input type="text" class="form-control input-small edate" id="begin_date" 
+         placeholder="Enter date">
+   </div>
+   <div class="form-group" >
+      <label for="end_date" style='min-width: 5em;' >End date</label>
+      <input type="text" class="form-control input-small edate" id="end_date" 
+         placeholder="Enter date">
+   </div>
+   <div class="form-group" >
+      <label for="tags_input" style='min-width: 5em; float: left;' >Tags</label>
+      <div style='float: left;'>
+      <input type="text" class="form-control input-small" id="tags_input" 
+         style='float: left;' placeholder="Enter tags">
+      </div>
+      <div style='clear: both;'></div>
+   </div>
+</form>
+
 <h4> Time line statistics </h4>
-
 <div id='scatter-plot-stats'>
-<svg style='height: 500px; width: 100%'>
-
-</svg>
 </div>
 <script type='text/javascript' >
-d3.json("{{=URL(c='viz', f='scatter_plot_data.json')}}", function(data) {
-    nv.addGraph(function() {
-      var chart = nv.models.scatterChart()
+$(function(){
+        var checkout_begin = $('#begin_date').datepicker({
+                format: 'mm/dd/yyyy'})
+                 .on('changeDate', function(ev) {
+                        checkout_begin.datepicker('hide');
+                        d3_plot_update({begin_date: checkout_begin[0].value})
+                    });
+
+    var checkout_end = $('#end_date').datepicker()
+                 .on('changeDate', function(ev) {
+                        checkout_end.datepicker('hide');
+                        d3_plot_update({end_date: checkout_end[0].value})
+                    });
+
+
+    var res = $("#tags_input").tokenInput(
+                    "{{=URL(c='api', f='autocomplete_tags.json', vars={'parent_id': -1})}}", 
+                    {
+                    //jsonContainer: 'data',
+                    preventDuplicates: true,
+                    minChars: 2,
+                    onAdd: function(item) {
+                        d3_plot_update({tag: item.name, action: 'add'})
+                        },
+                    onDelete: function(item) {
+                        d3_plot_update({tag: item.name, action: 'delete'})
+                        }
+
+                    });
+    $('.filter-form div ul.token-input-list input').attr('style', 'border: 1px solid #CCC;');
+
+    var w=620
+        h=400
+        svg=d3.select("#scatter-plot-stats")
+        data=false
+        chart=false
+        is_initialised=false;
+
+    function d3_plot_init() {
+        svg = svg.append("svg")
+            .attr("width",w)
+            .attr("height",h);
+        nv.addGraph(function() {
+
+        chart = nv.models.scatterChart()
                     .showDistX(true)    //showDist, when true, will display those little distribution lines on the axis.
                     .showDistY(true)
                     //.showLegend(false)
@@ -25,24 +87,58 @@ d3.json("{{=URL(c='viz', f='scatter_plot_data.json')}}", function(data) {
             return '<div> Event: ' + key +'<br /> Item: <em>' +  obj.point.label + '</em></div>';
         });
 
-      chart.xAxis.orient("bottom")
+        chart.xAxis.orient("bottom")
                  .tickFormat(function(d) { 
                             return d3.time.format('%d %b %H:%M')(new Date(d)) 
                             });
 
-      chart.yAxis.tickFormat(d3.format('.00f'));
+        chart.yAxis.tickFormat(d3.format('.00f'));
 
-      //We want to show shapes other than circles.
-      chart.scatter.onlyCircles(false);
+        //We want to show shapes other than circles.
+        chart.scatter.onlyCircles(false);
 
-      d3.select('#scatter-plot-stats svg')
-          .datum(data)
-          .call(chart);
+        svg.datum(data.data)
+            .call(chart);
+        console.log(data.tags);
 
-      nv.utils.windowResize(chart.update);
+        nv.utils.windowResize(chart.update);
 
-      return chart;
+        $("#scatter-plot-stats").append("<div id='tags_label'> Tags: " +data.tags.join([separator = ', '])+ "</div>");
+        is_initialised=true
+
+        return chart;
     });
+    }
+    function d3_plot_redraw(){
+        console.log('calling redraw');
+        d3.select("#scatter-plot-stats svg").empty();
+        d3.select("#scatter-plot-stats svg")
+            .datum(data.data)
+            .call(chart);
+        nv.utils.windowResize(chart.update);
+        $("#scatter-plot-stats #tags_label").text("Tags: " +data.tags.join([separator = ', ']));
+        
+    }
+
+    function d3_plot_update(args) {
+        var murl = "{{=URL(c='viz', f='scatter_plot_data.json', vars={'page':pageid})}}" +'&'+ $.param(args);
+
+        d3.json(murl, function(error, json) {
+            if (error) return console.warn(error);
+            data = json;
+            if (!is_initialised) {
+                   d3_plot_init();
+            } else {
+               d3_plot_redraw();
+            }
+
+        });
+
+    }
+    
+
+
+
 });
 </script>
 

@@ -5,7 +5,7 @@ from gluon.serializers import json
 if not auth.user:
     redirect(URL(c='default', f='user', args=['login']))
 
-DATE_FMT = '%Y-%m-%d'
+DATE_FMT = '%m/%d/%Y'
 strptime = datetime.datetime.strptime
 
 def index():
@@ -16,7 +16,12 @@ def bar_plot():
     return dict()
 
 def scatter_plot():
-    return dict()
+    import random
+    import string
+    def random_string(length=8, chars=string.letters + string.digits):
+        return ''.join([random.choice(chars) for i in range(length)])
+
+    return dict(pageid=random_string(10))
 
 def scatter_plot_data():
     from itertools import cycle
@@ -26,15 +31,34 @@ def scatter_plot_data():
         user_id = session.imp_user.id
     else:
         user_id = auth.user.id
+    if not request.vars.page:
+        raise HTTP(403)
+    session_page = 'scatter_{0}'.format(request.vars.page)
 
-    begin_date = None
-    end_date = None
-    tags = None
+    if session_page in session:
+        mquery = session[session_page]
+    else:
+        mquery = {'end': None, 'begin': None, 'tags': []}
+        session[session_page] = mquery
+    #try:
+    if request.vars.begin_date:
+        mquery['begin'] = strptime(request.vars.begin_date, DATE_FMT)
+    if request.vars.end_date:
+        mquery['end'] = strptime(request.vars.end_date, DATE_FMT)
+    if request.vars.tag and request.vars.action in ['add', 'delete']:
+        tag_name = request.vars.tag
+        if request.vars.action == 'add':
+            mquery['tags'].append(tag_name)
+        elif request.vars.action == 'delete' and tag_name in mquery['tags']:
+            mquery['tags'].remove(tag_name)
+    #except Exception:
+    #    raise HTTP(403)
 
-    res = db_query_as_dict(user_id, begin_date, end_date, tags)
+    res = db_query_as_dict(user_id, mquery['begin'], mquery['end'], mquery['tags'])
 
     shapes = cycle(['circle', 'cross', 'triangle-up', 'triangle-down', 'diamond', 'square'])
     data = []
+    tags = []
     for row in res:
         values = []
         for item in row['items']:
@@ -46,8 +70,11 @@ def scatter_plot_data():
             out['label'] = item['description']
             out['shape'] = shapes.next()
             values.append(out)
+            tags += row['tags']
         data.append({'key': row['title'], 'values': values, 'tags': row['tags']}) 
-    return dict(data=data)
+    tags = list(set(tags))
+    return dict(data={'data': data, 'tags': tags})
+
 
 
 def api():
