@@ -10,9 +10,10 @@
 # request.requires_https()
 from gluon.tools import prettydate
 import datetime
+from imageutils import THUMB
 
-## if NOT running on Google App Engine use SQLite or other DB
-db = DAL('sqlite://storage.sqlite',pool_size=1,check_reserved=['mysql'])
+db = DAL('mysql://web2py:pheen3zoog4Uboojiilo@localhost/daylogger',             #'sqlite://storage.sqlite',
+        pool_size=1,check_reserved=['mysql'])
 
 ## by default give a view/generic.extension to all actions from localhost
 ## none otherwise. a pattern can be 'controller/function.extension'
@@ -65,8 +66,8 @@ db.define_table('events',
     Field('description', 'text', requires=IS_NOT_EMPTY()),
     Field('edate', 'date', label='Date', requires=IS_DATE()),
     Field('etime', 'time', label='Time', requires=IS_TIME()),
-    Field('edatetime',
-        compute=lambda r: datetime.datetime.combine(r['edate'],r['etime'])),
+    Field('edatetime', compute=lambda r: datetime.datetime.combine(r['edate'],r['etime'])),
+    #Field('edatetime2s', compute=lambda r: r['edatetime'].strftime('%s') ),
     auth.signature
     )
 
@@ -91,11 +92,6 @@ db.define_table('tag_event_items',
     Field('parent', 'reference event_items'),
     Field('tag', 'reference tags'))
 
-# prepopulate tags table
-if not db(db.tags).count():
-    with open('./applications/dayLogger/modules/nounlist.txt', 'r') as f:
-        for line in f:
-            db.tags.insert(name=line.strip())
 
 db.define_table('pictures',
     Field('name','string'),
@@ -105,6 +101,7 @@ db.define_table('pictures',
     Field('event', 'reference events', **hidden),
     auth.signature
     )
+db.pictures.thumb.compute = lambda row: THUMB(row.mainfile, 200, 200)
 
 ## if you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.
 ## register with janrain.com, write your domain:api_key in private/janrain.key

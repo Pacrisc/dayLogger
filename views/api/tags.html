@@ -14,15 +14,15 @@ $(document).ready(function () {
         $("#{{=form_name}} input.form-control").tokenInput(
                 "{{=URL(c='api', f='autocomplete_tags.json', vars={'table': table, 'parent_id': parent_id})}}", 
                 {
-                jsonContainer: 'data',
+                //jsonContainer: 'data',
                 preventDuplicates: true,
                 minChars: 2,
                 prePopulate: {{=XML(json(prepopulate_tags))}},
                 onAdd: function(item) {
-                    ajax("{{=URL(c='api', f='manage_tags', args=['add'], vars={'table': table, 'parent_id': parent_id, 'tag_id': ''})}}" + item.id, [], ':eval');
+                    ajax("{{=XML(URL(c='api', f='manage_tags', args=['add'], vars={'table': table, 'parent_id': parent_id}))}}" + '&tag_id='+item.id, [], ':eval');
                     },
                 onDelete: function(item) {
-                    ajax("{{=URL(c='api', f='manage_tags', args=['delete'], vars={'table': table, 'parent_id': parent_id, 'tag_id': ''})}}" + item.id, [], ':eval');
+                    ajax("{{=XML(URL(c='api', f='manage_tags', args=['delete'], vars={'table': table, 'parent_id': parent_id}))}}" +'&tag_id='+ item.id, [], ':eval');
                     }
 
                 });

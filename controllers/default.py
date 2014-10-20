@@ -38,11 +38,6 @@ def day():
     redirect(URL(c='default', f='index'))
 
 
-def events():
-    """
-    """
-    return dict()
-
 @auth.requires_signature()
 def form_wrapper():
     mvars = {key: val for key, val in request.vars.iteritems()}
@@ -54,7 +49,7 @@ def form_wrapper():
         else:
             margs.append(val)
     if table == 'event':
-        murl = {'c': 'default', 'f': 'event_handler'}
+        murl = {'c': 'default', 'f': 'events'}
     elif table == 'eventitem':
         murl = {'c': 'default', 'f': 'event_item_handler'}
     else:
@@ -66,6 +61,9 @@ def form_wrapper():
 def event_item_handler():
     if request.args:
         mid = int(request.args[0])
+        if not has_item_permission(db.events[mid]):
+            raise HTTP(403)
+
     db.event_items.parent.default = mid
     form = SQLFORM(db.event_items, formstyle='bootstrap')
     if form.process().accepted:
@@ -78,14 +76,16 @@ def event_item_handler():
     return dict(form=form)
 
 
-#@auth.requires_signature()
-def event_handler():
+def events():
     d = None
     form = None
     rows = []
     action = request.vars.a
     if request.args:
         mid = int(request.args[0])
+        if action in ['delete', 'update']:
+            if not has_item_permission(db.events(mid)):
+                raise HTTP(403)
     else:
         mid = None
     if action == 'delete':
@@ -93,6 +93,7 @@ def event_handler():
             res = db(db.events.id == mid).delete()
             if res:
                 redirect(URL('default', 'index'), client_side=True)
+
 
     elif action in ['update', 'create']:
         if mid:
@@ -104,7 +105,7 @@ def event_handler():
         form = SQLFORM(db.events, record, formstyle='bootstrap')
         if form.process().accepted:
             response.flash = 'Event submitted!'
-            redirect(URL(c='default', f='event_handler', args=[form.vars.id],
+            redirect(URL(c='default', f='events', args=[form.vars.id],
                             vars={'a': 'show'}, user_signature=True))
         elif form.errors:
             response.flash = 'Errors in event form!'
@@ -115,15 +116,19 @@ def event_handler():
             response.flash = 'Something went wrong!'
         rows = db(db.event_items.parent==record.id).select()
     else:
-        raise ValueError
+        raise HTTP(403)
+
     return dict(record=record, form=form, action=action, rows=rows)
 
 
 @auth.requires_signature()
 def delete_event_item():
     mid = int(request.args[0])
-    db(db.event_items.id==mid).delete()
-    return "$('tr#event_item_{0}').remove();".format(mid)
+    if has_item_permission(db.event_items[mid].parent):
+        db(db.event_items.id==mid).delete()
+        return "$('tr#event_item_{0}').remove();".format(mid)
+    else:
+        raise HTTP(403)
 
 
 def user():
@@ -175,15 +180,5 @@ def api():
         }
     return Collection(db).process(request,response,rules)
 
-@auth.requires_membership('admin')
-def user_admin():
-    db.auth_user.registration_key.readable=True
-    grid = SQLFORM.grid(db.auth_user,
-                   fields=[db.auth_user.id, db.auth_user.first_name,
-                           db.auth_user.last_name, db.auth_user.registration_key, db.auth_user.email],
-                   orderby = [~db.auth_user.id]
-                   )
-                   
-    return locals()
 
 
