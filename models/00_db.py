@@ -12,7 +12,7 @@ from gluon.tools import prettydate
 import datetime
 from imageutils import THUMB
 
-db = DAL('mysql://web2py:pheen3zoog4Uboojiilo@localhost/daylogger',             #'sqlite://storage.sqlite',
+db = DAL(DB_LOGIN,             #'sqlite://storage.sqlite',
         pool_size=1,check_reserved=['mysql'])
 
 ## by default give a view/generic.extension to all actions from localhost
@@ -49,8 +49,8 @@ auth.define_tables(username=False, signature=False)
 ## configure email
 mail = auth.settings.mailer
 mail.settings.server = 'logging' if request.is_local else 'smtp.gmail.com:587'
-mail.settings.sender = 'you@gmail.com'
-mail.settings.login = 'username:password'
+mail.settings.sender = EMAIL_SENDER
+mail.settings.login = EMAIL_LOGIN
 
 ## configure auth policy
 auth.settings.registration_requires_verification = False
