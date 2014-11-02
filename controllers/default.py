@@ -37,6 +37,15 @@ def day():
     #session.flash = 'Wrong arguments for the day page!'
     redirect(URL(c='default', f='index'))
 
+def top_events():
+    if not auth.has_membership('admin'):
+        q &= db.events.created_by == auth.user_id
+    elif session.imp_user:
+        q &= db.events.created_by == session.imp_user.id
+    rows = db(q).select(orderby=db.events.id, group_by=db.events.parent)
+    return dict(rows=rows)
+
+
 
 @auth.requires_signature()
 def form_wrapper():
@@ -83,7 +92,7 @@ def events():
     action = request.vars.a
     if request.args:
         mid = int(request.args[0])
-        if action in ['delete', 'update']:
+        if action in ['delete', 'update', 'clone']:
             if not has_item_permission(db.events(mid)):
                 raise HTTP(403)
     else:
@@ -93,7 +102,6 @@ def events():
             res = db(db.events.id == mid).delete()
             if res:
                 redirect(URL('default', 'index'), client_side=True)
-
 
     elif action in ['update', 'create']:
         if mid:
@@ -109,6 +117,29 @@ def events():
                             vars={'a': 'show'}, user_signature=True))
         elif form.errors:
             response.flash = 'Errors in event form!'
+    elif action == 'clone':
+        record = db.events(mid)
+        parent_id = mid
+        if not record:
+            raise HTTP(503, 'Wrong arguments!')
+        today = datetime.datetime.today()
+        event_id = db.events.insert(title=record['title'],
+                                description=record['description'],
+                                edate=today.date(),
+                                etime=today.time(), 
+                                parent=parent_id)
+        tags_id_list = [el['tag'] for el in  db(db.tag_events.parent==parent_id).select(db.tag_events.tag)]
+        for tag_id in tags_id_list:
+            db.tag_events.insert(parent=event_id, tag=tag_id)
+        for event_item in  db(db.event_items.parent==parent_id).select():
+            event_item_id = db.event_items.insert(parent=event_id, 
+                                                  description=event_item.description)
+            tags_id_list = [el['tag'] for el in  db(db.tag_event_items.parent==parent_id).select(db.tag_event_items.tag)]
+            for tag_idx in tags_id_list:
+                db.tag_event_items.insert(parent=event_item_id, tag=tag_idx)
+        redirect(URL(c='default', f='events', args=[event_id],
+                            vars={'a': 'show'}, user_signature=True))
+
     elif action == 'show':
         mid = int(request.args[0])
         record = db.events(mid)

@@ -43,10 +43,12 @@
     </ul>
             <div class="btn-toolbar dl_crud_toolbar pull-right">
                 <div class="btn-group"> 
+                    <a class='btn btn-small' href='{{=URL(c='default', f='events', args=[record.id], vars={'a': 'clone'})}}'>
+                        <i class="icon-edit"></i>Clone</a>
                     <a class='btn btn-small' href='{{=URL(c='default', f='events', args=[record.id], vars={'a': 'update'})}}'>
-                        <i class="icon-edit"> </i> Edit </a>
+                        <i class="icon-edit"></i>Edit</a>
                     <a class='btn btn-small' href='javascript:void(0);' onclick="ajax('{{=URL(c='default', f='events', args=[record.id], vars={'a': 'delete'}, user_signature=True)}}', [], ':eval')">
-                        <i class="icon-trash"> </i> Delete </a>
+                        <i class="icon-trash"></i> Delete </a>
                 </div>
             </div>
         <h3 > <button type="button" class="btn btn-info">{{=record.edate.strftime('%d %b %Y')}}  {{=record.etime.strftime('%I:%M %p')}}</button>  {{=record.title}}</h3>

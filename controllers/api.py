@@ -41,15 +41,16 @@ def manage_tags():
 def jeditable():
     """ This is not secure """
     import re
+    import string
     if request.vars.id:
         _, field, mid = request.vars.id.split('_')
         mid = int(mid)
 
-    sanitize_int = lambda x: int(re.sub('[^0-9+\-]+', '', x))
+    sanitize_int = lambda x: float(re.sub('[^0-9+\-.eE]+', '', x))
     if field in ['description', 'value']:
         if has_item_permission(db.event_items[mid].parent):
             table = 'event_items'
-            sanitize = {'description': str, 'value': sanitize_int }[field]
+            sanitize = {'description': string.strip, 'value': sanitize_int }[field]
         else:
             raise HTTP(403)
 

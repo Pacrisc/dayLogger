@@ -68,6 +68,8 @@ db.define_table('events',
     Field('etime', 'time', label='Time', requires=IS_TIME()),
     Field('edatetime', compute=lambda r: datetime.datetime.combine(r['edate'],r['etime'])),
     #Field('edatetime2s', compute=lambda r: r['edatetime'].strftime('%s') ),
+    Field('parent', 'reference events', **hidden),
+    #Field.Virtual('parent', lambda row: row['parent_link'] is not None and row['parent_link'] or row['id']),
     auth.signature
     )
 
@@ -77,7 +79,7 @@ db.events.edate.widget = SQLFORM.widgets.date.widget
 db.define_table('event_items',
     Field('parent', 'reference events', **hidden),
     Field('description', 'string', requires=IS_NOT_EMPTY()),
-    Field('value', 'integer', requires=IS_NOT_EMPTY())
+    Field('value', 'float', requires=IS_NOT_EMPTY())
     )
 
 db.define_table('tags',

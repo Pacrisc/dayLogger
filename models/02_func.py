@@ -57,14 +57,18 @@ def db_query_as_dict(user_id=None, begin_date=None, end_date=None, tags=None):
     events_id = db(q).select(db.events.id, groupby=db.events.id).as_dict().keys()
 
     q = db.events.id.belongs(events_id)
-    events = db(q).select(db.events.id, db.events.title,
+    events = db(q).select(db.events.id, db.events.title, db.events.parent,
             db.events.edatetime, db.events.created_by).as_dict()
 
     for eid, event in events.iteritems():
         sub_q =  (db.tag_events.parent==eid) & (db.tags.id==db.tag_events.tag)
         event['tags'] = [el['name'] for el in db(sub_q).select(db.tags.name).as_list()]
         sub_q = db.event_items.parent==eid
-        event['items'] = db(sub_q).select(db.event_items.description, db.event_items.value).as_list()
+        sub_res = db(sub_q).select(db.event_items.description, db.event_items.value).as_list()
+        event['items'] = sub_res
+
+        #event['items'] = {el['key: val for 
+        #event['parent'] = event['parent']
         event['id'] = eid
 
     return events.values()
