@@ -30,7 +30,8 @@ response.google_analytics_id = None
 response.menu = [
     (T('Home'), False, URL('default', 'index'), []),
     (T('Events'), False, URL('default', 'index'), [
-        ('Top 10 events', False, URL('default', 'events')),
+        ('All events', False, URL('default', 'all_days')),
+        ('Top 10 events', False, URL('default', 'top_events')),
           ]),
     (T('Visualize'), False, URL('viz', 'index'), [])
 ]

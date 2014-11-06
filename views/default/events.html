@@ -58,8 +58,20 @@
             {{else:}}
             <span class='last_modified'> Created {{=prettydate(record.created_on, T)}}, last modified {{=prettydate(record.modified_on, T)}}</span>
             {{pass}}
-
         </div/>
+
+        {{if vargs['count']>1:}}
+        <div class="alert alert-info" role="alert">Event repeated {{=vargs['count']}} times
+            {{if vargs['end_date'] != vargs['begin_date']:}}
+              between {{=vargs['begin_date'].strftime('%d %b %Y')}} and {{=vargs['end_date'].strftime('%d %b %Y')}} . 
+            {{else:}}
+              on {{=vargs['begin_date'].strftime('%d %b %Y')}} .
+            {{pass}}
+            </div>
+        {{else:}}
+        <div class="alert alert-info" role="alert">One time event </div>
+        {{pass}}
+
         <div id='event_description'>
             {{=record.description}}
         </div>

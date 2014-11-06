@@ -19,6 +19,19 @@ def index():
     return dict(rows=rows, count_op=count_op)
 
 
+def all_days():
+    count_op = db.events.id.count()
+    q = db.events.id>0
+    if not is_admin:
+        q &= db.events.created_by == auth.user_id
+    elif session.imp_user:
+        q &= db.events.created_by == session.imp_user.id
+
+    rows = db(q).select(db.events.ALL, count_op,
+                        groupby=db.events.edate)
+    return dict(rows=rows, count_op=count_op)
+
+
 def day():
     """
     """
@@ -37,13 +50,17 @@ def day():
     #session.flash = 'Wrong arguments for the day page!'
     redirect(URL(c='default', f='index'))
 
+
 def top_events():
+    q = db.events.id>0
     if not auth.has_membership('admin'):
         q &= db.events.created_by == auth.user_id
     elif session.imp_user:
         q &= db.events.created_by == session.imp_user.id
-    rows = db(q).select(orderby=db.events.id, group_by=db.events.parent)
-    return dict(rows=rows)
+
+    count = db.events.id.count()
+    rows = db(q).select(db.events.ALL, count, orderby=db.events.id, groupby=db.events.parent_id)
+    return dict(rows=rows, weight = [el[count] for el in rows])
 
 
 
@@ -68,6 +85,7 @@ def form_wrapper():
 
 #@auth.requires_signature()
 def event_item_handler():
+    """ Create new events """
     if request.args:
         mid = int(request.args[0])
         if not has_item_permission(db.events[mid]):
@@ -77,6 +95,11 @@ def event_item_handler():
     form = SQLFORM(db.event_items, formstyle='bootstrap')
     if form.process().accepted:
         session.flash = 'Event item submitted!'
+        # bulk insert event_items for all events in the group
+        record = db.events[mid]
+        q = (db.events.parent_id==record.parent_id) & (db.events.id != mid)
+        event_ids =  db(q).select(db.events.id).as_dict().keys()
+        db.event_items.bulk_insert([{'parent': eid, 'description': form.vars.description} for eid in event_ids])
         # just reload the whole page 
         redirect(URL(c='default', f='events', args=[mid], vars={'a': 'show'},
                                             user_signature=True), client_side=True)
@@ -89,6 +112,7 @@ def events():
     d = None
     form = None
     rows = []
+    vargs = {}
     action = request.vars.a
     if request.args:
         mid = int(request.args[0])
@@ -99,6 +123,13 @@ def events():
         mid = None
     if action == 'delete':
         if mid:
+            q = (db.events.parent_id == mid) & (db.events.id != mid)
+            children = db(q).select(db.events.id, orderby=db.events.id).first()
+            # make sure than when an event is deleted, it's children
+            # are transferred to the another event in the same group
+            if children:
+                alternative_id = children.first().id
+                db(q).update(parent_id == alternative_id)
             res = db(db.events.id == mid).delete()
             if res:
                 redirect(URL('default', 'index'), client_side=True)
@@ -112,13 +143,24 @@ def events():
             db.events.edate.default = str2date(request.vars.day_date)
         form = SQLFORM(db.events, record, formstyle='bootstrap')
         if form.process().accepted:
-            response.flash = 'Event submitted!'
+            #session.flash = 'Event submitted!'
+            if not mid:
+                db(db.events.id==form.vars.id).update(parent_id=form.vars.id)
+            else:
+                record = db.events[mid]
+                db(db.events.parent_id==record.parent_id).update(title=form.vars.title,
+                                                description=form.vars.description)
+
             redirect(URL(c='default', f='events', args=[form.vars.id],
                             vars={'a': 'show'}, user_signature=True))
         elif form.errors:
             response.flash = 'Errors in event form!'
     elif action == 'clone':
         record = db.events(mid)
+        # assume that the tree has maximum depth of 1
+        if record.parent_id != record.id:
+            mid = record.parent_id
+            record = db.events(mid)
         parent_id = mid
         if not record:
             raise HTTP(503, 'Wrong arguments!')
@@ -127,7 +169,7 @@ def events():
                                 description=record['description'],
                                 edate=today.date(),
                                 etime=today.time(), 
-                                parent=parent_id)
+                                parent_id=parent_id)
         tags_id_list = [el['tag'] for el in  db(db.tag_events.parent==parent_id).select(db.tag_events.tag)]
         for tag_id in tags_id_list:
             db.tag_events.insert(parent=event_id, tag=tag_id)
@@ -143,20 +185,32 @@ def events():
     elif action == 'show':
         mid = int(request.args[0])
         record = db.events(mid)
+        count = db.events.id.count()
+        begin_date = db.events.edate.min()
+        end_date = db.events.edate.max()
+        rows_group =  db(db.events.parent_id==record.parent_id).select(count, begin_date, end_date).first()
+        vargs['count'] = rows_group[count]
+        vargs['begin_date'] = rows_group[begin_date]
+        vargs['end_date'] = rows_group[end_date]
         if record is None:
             response.flash = 'Something went wrong!'
         rows = db(db.event_items.parent==record.id).select()
     else:
         raise HTTP(403)
 
-    return dict(record=record, form=form, action=action, rows=rows)
+    return dict(record=record, form=form, action=action, rows=rows, vargs=vargs)
 
 
 @auth.requires_signature()
 def delete_event_item():
     mid = int(request.args[0])
-    if has_item_permission(db.event_items[mid].parent):
-        db(db.event_items.id==mid).delete()
+    record = db.event_items[mid]
+    event = db.events[record.parent]
+    if has_item_permission(record.parent):
+        event_id_list = db(db.events.parent_id == event.parent_id).select(db.events.id).as_dict().keys()
+        q = db.event_items.parent.belongs(event_id_list)
+        q &= db.event_items.description == record.description
+        db(q).delete()
         return "$('tr#event_item_{0}').remove();".format(mid)
     else:
         raise HTTP(403)
