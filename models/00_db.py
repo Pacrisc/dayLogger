@@ -106,6 +106,15 @@ db.define_table('pictures',
     )
 db.pictures.thumb.compute = lambda row: THUMB(row.mainfile, 200, 200)
 
+db.define_table('algorithms',
+    Field('title', 'string', requires=IS_NOT_EMPTY()),
+    Field('description', 'text'),
+    Field('code', 'text'),
+    Field('status', 'string', default='pending', **hidden),
+    Field('visibility', 'string', requires=IS_IN_SET(['public', 'private'])),
+    auth.signature
+    )
+
 ## if you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.
 ## register with janrain.com, write your domain:api_key in private/janrain.key
 #from gluon.contrib.login_methods.janrain_account import use_janrain
