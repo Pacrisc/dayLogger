@@ -14,9 +14,20 @@ def index():
     elif session.imp_user:
         q &= db.events.created_by == session.imp_user.id
 
-    rows = db(q).select(db.events.ALL, count_op,
-                        groupby=db.events.edate)
-    return dict(rows=rows, count_op=count_op)
+    if request.vars.sortby is not None and request.vars.sortby in ['last', 'popular']:
+        sortby = request.vars.sortby
+    else:
+        sortby = 'last'
+
+    count = db.events.id.count()
+    last = db.events.edatetime.max()
+
+    rows = db(q).select(db.events.ALL, count, last, groupby=db.events.parent_id)
+    if sortby == 'last':
+        rows = rows.sort(lambda row: row[last], reverse=True)
+    elif sortby == 'popular':
+        rows = rows.sort(lambda row: row[count], reverse=True)
+    return dict(rows=rows, sortby=sortby)
 
 
 def all_days():
@@ -133,6 +144,17 @@ def events():
             res = db(db.events.id == mid).delete()
             if res:
                 redirect(URL('default', 'index'), client_side=True)
+    elif action  == 'unlink':
+        if mid:
+            record = db.events(mid)
+        else:
+            record = None
+        if not record or record.parent_id == record.id:
+            raise HTTP(403)
+
+        record.update_record(parent_id=record.id)
+        redirect(URL(c='default', f='events', args=[record.id],
+                        vars={'a': 'show'}))
 
     elif action in ['update', 'create']:
         if mid:
@@ -155,6 +177,8 @@ def events():
                             vars={'a': 'show'}, user_signature=True))
         elif form.errors:
             response.flash = 'Errors in event form!'
+        context = dict(form=form, record=record, action=action)
+        return response.render('default/events_crupdate.html', context)
     elif action == 'clone':
         record = db.events(mid)
         # assume that the tree has maximum depth of 1
@@ -180,25 +204,45 @@ def events():
             for tag_idx in tags_id_list:
                 db.tag_event_items.insert(parent=event_item_id, tag=tag_idx)
         redirect(URL(c='default', f='events', args=[event_id],
-                            vars={'a': 'show'}, user_signature=True))
+                    vars={'a': 'show', 'view': request.vars.view}, user_signature=True))
 
     elif action == 'show':
         mid = int(request.args[0])
         record = db.events(mid)
+        if request.vars.view and request.vars.view in ['default', 'table', 'summary']:
+            view_mode = request.vars.view
+        else:
+            view_mode = 'default'
+
         count = db.events.id.count()
         begin_date = db.events.edate.min()
         end_date = db.events.edate.max()
-        rows_group =  db(db.events.parent_id==record.parent_id).select(count, begin_date, end_date).first()
-        vargs['count'] = rows_group[count]
-        vargs['begin_date'] = rows_group[begin_date]
-        vargs['end_date'] = rows_group[end_date]
+
+        rows_group =  db(db.events.parent_id==record.parent_id).select(db.events.id, count, begin_date, end_date)
+
+        rows_group_el = rows_group.first()
+        vargs['events_count'] = rows_group_el[count]
+        vargs['events_begin_date'] = rows_group_el[begin_date]
+        vargs['events_end_date'] = rows_group_el[end_date]
+        vargs['view_mode'] = view_mode
+        if view_mode == 'table':
+            df = db_query_as_dict(group_id=record.parent_id, view='DataFrame')
+            vargs['df'] = df['items']
+            vargs['lookup'] =  df['lookup']
+        else:
+            vargs['df'] = None
+            vargs['lookup'] = None
+
         if record is None:
             response.flash = 'Something went wrong!'
         rows = db(db.event_items.parent==record.id).select()
+        context = dict(record=record, form=form, rows=rows, **vargs)
+        if view_mode in ['default', 'table']:
+            return  response.render('default/events_show_full.html',  context)
+        elif view_mode == 'summary':
+            return  response.render('default/events_show_summary.html', context)
     else:
         raise HTTP(403)
-
-    return dict(record=record, form=form, action=action, rows=rows, vargs=vargs)
 
 
 @auth.requires_signature()

@@ -1,28 +1,27 @@
 {{extend 'layout.html'}}
 
 
-<a class='btn btn-small pull-right' href='{{=URL(c='default',f='events',vars={'a': 'create', 'day_date': datetime.datetime.today().strftime('%Y-%m-%d')}, user_signature=True )}}' > Add events... </a>
-<h2>List of days</h2>
+ <div class="btn-toolbar dl_crud_toolbar pull-right">
+    <div class="btn-group"> 
+        <a class='btn btn-small' href='{{=URL(c='default',f='events',vars={'a': 'create', 'day_date': datetime.datetime.today().strftime('%Y-%m-%d')}, user_signature=True )}}' > <i class='icon-plus'></i> Add events </a>
+         <a class="btn btn-small dropdown-toggle" data-toggle="dropdown">
+             <i class="icon-list"></i>Sort by
+             <span class="caret"></span>
+         </a>
+         <ul class="dropdown-menu">
+             <li><a href="{{=URL(c='default', f='index', vars={'sortby': 'last'})}}"><i class="icon-{{=sortby=='last' and 'ok' or 'minus'}}"></i>Last modified</a></li>
+             <li><a href="{{=URL(c='default', f='index', vars={'sortby': 'popular'})}}"><i class="icon-{{=sortby=='popular' and 'ok' or 'minus'}}"></i>Event number</a></li>
+         </ul>
+    </div>
+ </div>
+
+<h1>Home</h1>
 
 <div class='daylogger'>
 
-
-
-<ul class='days nav nav-list'>
-    {{for row in rows:}}
-    <li>
-    <a href={{=URL(c='default', f='day', args=[row.events.edate])}}>
-            {{=row.events.edate.strftime('%d %b %Y')}}
-            {{if is_admin and not session.imp_user:}}
-            [{{=row.events.created_by.email}}]
-            {{pass}}
-            {{num_events =  row[count_op]}} 
-            <span class="badge">{{=row[count_op]}}</span>
-        </a> 
-        </li>
-    {{pass}}
-
-</ul>
+{{for row in rows:}}
+{{=LOAD(c='default', f='events', args=[row.events.parent_id], vars={'a': 'show', 'view': 'summary'}, ajax=True)}}
+{{pass}}
 
 
 

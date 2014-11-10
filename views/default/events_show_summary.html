@@ -1,0 +1,31 @@
+    <div class='dl_event dl_event_summary'>
+    
+        <div class="btn-toolbar dl_crud_toolbar pull-right">
+            <div class="btn-group"> 
+                <a class='btn btn-small' href='{{=URL(c='default', f='events', args=[record.id], vars={'a': 'show', 'view': 'default'})}}'>
+                    <i class="icon-edit"></i>Edit</a>
+                <a class='btn btn-small' href='{{=URL(c='default', f='events', args=[record.id], vars={'a': 'clone', 'view': 'default' })}}'>
+                    <i class="icon-plus"></i>Clone</a>
+            </div>
+        </div>
+        {{=LOAD(c='api',f='tags', vars={'table': 'tag_events', 'parent_id': record.id, 'readonly': 1},  user_signature=True, ajax=True, _class='pull-right')}}
+        <h3 onclick='window.location.href= "{{=URL(c='default', f='events', args=[record.id], vars={'a': 'show', 'view': 'default'})}}"'>
+                {{=record.title}}</h3>
+        {{if events_count>1:}}
+        <div class="alert alert-info group-event-info" role="alert">
+            Event repeated {{=events_count}} times
+            {{if events_end_date != events_begin_date:}}
+              between {{=events_begin_date.strftime('%d %b %Y')}} and {{=events_end_date.strftime('%d %b %Y')}} . 
+            {{else:}}
+              on {{=events_begin_date.strftime('%d %b %Y')}} .
+            {{pass}}
+            </div>
+        {{else:}}
+        <div class="alert alert-info" role="alert">One time event on {{=events_begin_date.strftime('%d %b %Y')}} </div>
+        {{pass}}
+
+        <div id='event_description'>
+            {{=record.description}}
+        </div>
+   
+    <div>

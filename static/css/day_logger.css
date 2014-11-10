@@ -53,7 +53,7 @@ ul.breadcrumb > li:before{
     font-size: 90%
 }
 
-#dl_event #event_description {
+.dl_event #event_description {
     margin-left: 1em;
 }
 
@@ -101,4 +101,37 @@ li.token-input-token {
 
 #photo-container .span2 {
     margin-bottom: 0.5em;
+}
+
+.dl_event .group-event-info .btn-toolbar {
+    margin-top: -2px;
+}
+
+.dl_event .group-event-info.alert {
+    padding-right: 5px;
+}
+
+
+.dl_event_summary:hover {
+    border: 1.5px solid black;
+}
+
+.dl_event_summary {
+    padding: 4px;
+    margin: 10px 0;
+    border: 1px solid gray;
+    border-radius: 5px;
+}
+
+.dl_event_summary h3{
+    margin: 0px 0;
+    cursor: pointer;
+}
+
+.dl_event_summary .alert{
+    margin-bottom: 5px;
+}
+
+.dl_event_summary .dl-outer-tag_events {
+    margin-right: 5px;
 }

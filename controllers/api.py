@@ -13,6 +13,10 @@ def tags():
         raise HTTP(403)
     table = str(request.vars.table)
     parent_id = int(request.vars.parent_id)
+    if request.vars.readonly is not None:
+        readonly = True
+    else:
+        readonly = False
     form_name = '-'.join([request.vars.table, str(parent_id)])
     q = db[table].parent == parent_id
     q &= db[table].tag == db.tags.id
@@ -30,12 +34,25 @@ def manage_tags():
     parent_id = int(request.vars.parent_id)
     action = request.args[0]
     tag_id = int(request.vars.tag_id)
-    if action == 'add':
-        res = db[table].insert(parent=parent_id, tag=tag_id)
-    elif action == 'delete':
-        q = (db[table].parent==parent_id)
-        q &= (db[table].tag==tag_id)
-        res = db(q).delete()
+    if table == 'tag_event_items':
+        if action == 'add':
+            res = db[table].insert(parent=parent_id, tag=tag_id)
+        elif action == 'delete':
+            q = (db[table].parent==parent_id)
+            q &= (db[table].tag==tag_id)
+            res = db(q).delete()
+    else:
+        record = db.events(parent_id)
+        if not record:
+            raise HTTP(403)
+        id_list = db(db.events.parent_id==record.parent_id).select(db.events.id).as_dict().keys()
+        if action == 'add':
+            res = db[table].bulk_insert([{'parent': idx, 'tag': tag_id} for idx in id_list])
+        elif action == 'delete':
+            q = (db[table].parent.belongs(id_list))
+            q &= (db[table].tag==tag_id)
+            res = db(q).delete()
+
     return res
 
 def jeditable():

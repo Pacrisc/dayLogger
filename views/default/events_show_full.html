@@ -1,57 +1,31 @@
-
 {{extend 'layout.html'}}
 
 <div class='daylogger'>
-{{if action in ['create', 'update']:}}
-    <div id='dl_event_form'>
-        {{if action == 'create':}}
-        <h3> New event </h3>
-        {{elif action == 'update':}}
-        <h3> Update event </h3>
-        <ul class="breadcrumb">
-            <li><a href="{{=URL(c='default', f='index')}}">Home</a></li>
-            <li><a href='#'>{{=record.edate.strftime('%d %b %Y')}}</a></li>
-            <li>Home</li>
-        </ul>
-        {{pass}}
-        {{=form}}
-
-    <div>
-<script type='text/javascript' >
-    $(function() {
-       $('textarea#events_description').attr('rows', 4)
-                                       .removeAttr('cols');
-       $('input#events_edate').addClass('input-small')
-                              .removeClass('span4');
-       $('input#events_etime').addClass('input-small')
-                             .removeClass('span4');
-
-        $('#events_id__row').hide();
-        $('#events_etime').timepicker();
-       // Hacking the default web2py form to put date and time inputs on the same row 
-       //$("#dl_event_form #submit_record__row").before("<div id='events_edatetime__row' class='control-group'></div>");
-       //$('#events_edatetime__row').html($('#events_edate__row').html() + $('#events_etime__row').html());
-    });
-</script>
-
-{{elif action == 'show':}}
-    <div id='dl_event'>
+    <div class='dl_event'>
+    
+    {{if view_mode != 'summary':}}
     <ul class="breadcrumb">
         <li><a href="{{=URL(c='default', f='index')}}">Home</a></li>
         <li><a href='{{=URL(c='default', f='day', args=[record.edate])}}'>{{=record.edate.strftime('%d %b %Y')}}</a></li>
         <li>Current event</li>
     </ul>
+    
             <div class="btn-toolbar dl_crud_toolbar pull-right">
                 <div class="btn-group"> 
-                    <a class='btn btn-small' href='{{=URL(c='default', f='events', args=[record.id], vars={'a': 'clone'})}}'>
-                        <i class="icon-edit"></i>Clone</a>
+                    <a class='btn btn-small' href='{{=URL(c='default', f='events', args=[record.id], vars={'a': 'clone', 'view': view_mode })}}'>
+                        <i class="icon-plus"></i>Clone</a>
                     <a class='btn btn-small' href='{{=URL(c='default', f='events', args=[record.id], vars={'a': 'update'})}}'>
                         <i class="icon-edit"></i>Edit</a>
                     <a class='btn btn-small' href='javascript:void(0);' onclick="ajax('{{=URL(c='default', f='events', args=[record.id], vars={'a': 'delete'}, user_signature=True)}}', [], ':eval')">
                         <i class="icon-trash"></i> Delete </a>
                 </div>
             </div>
-        <h3 > <button type="button" class="btn btn-info">{{=record.edate.strftime('%d %b %Y')}}  {{=record.etime.strftime('%I:%M %p')}}</button>  {{=record.title}}</h3>
+        {{pass}}
+        <h3 > 
+            {{if view_mode == 'default':}}
+            <button type="button" class="btn btn-info">{{=record.edate.strftime('%d %b %Y')}}  {{=record.etime.strftime('%I:%M %p')}}</button>
+            {{pass}}
+            {{=record.title}}</h3>
         <div class='auth_info'> 
             {{if is_admin:}}
             <span class='last_modified'> Created {{=prettydate(record.created_on, T)}} by {{=record.created_by.email}}, last modified {{=prettydate(record.modified_on, T)}} by {{=record.modified_by.email}} </span>
@@ -60,12 +34,23 @@
             {{pass}}
         </div/>
 
-        {{if vargs['count']>1:}}
-        <div class="alert alert-info" role="alert">Event repeated {{=vargs['count']}} times
-            {{if vargs['end_date'] != vargs['begin_date']:}}
-              between {{=vargs['begin_date'].strftime('%d %b %Y')}} and {{=vargs['end_date'].strftime('%d %b %Y')}} . 
+        {{if events_count>1:}}
+        <div class="alert alert-info group-event-info" role="alert">
+            <div class="btn-toolbar dl_crud_toolbar pull-right">
+                <div class="btn-group"> 
+                    <a class='btn btn-small' href='{{=URL(c='default', f='events', args=[record.id], vars={'a': 'show', 'view': view_mode !='table' and 'table' or 'default'})}}'>
+                        <i class="icon-edit"></i>{{=(view_mode!='table') and 'Table' or 'Default'}} view</a>
+                    <a class='btn btn-small' href='{{=URL(c='default', f='events', args=[record.id], vars={'a': 'unlink'})}}'>
+                        <i class="icon-edit"></i>Unlink</a>
+                    <a class='btn btn-small disabled' href='javascript:void(0);'>
+                        <i class="icon-trash"></i>Delete all</a>
+                </div>
+            </div>
+            Event repeated {{=events_count}} times
+            {{if events_end_date != events_begin_date:}}
+              between {{=events_begin_date.strftime('%d %b %Y')}} and {{=events_end_date.strftime('%d %b %Y')}} . 
             {{else:}}
-              on {{=vargs['begin_date'].strftime('%d %b %Y')}} .
+              on {{=events_begin_date.strftime('%d %b %Y')}} .
             {{pass}}
             </div>
         {{else:}}
@@ -79,6 +64,7 @@
 
 
         {{=LOAD(c='api',f='tags', vars={'table': 'tag_events', 'parent_id': record.id},  user_signature=True, ajax=True)}}
+        {{if view_mode == 'default':}}
         <a class='btn btn-small pull-right' href='javascript:void(0);' onclick="ajax('{{=URL(c='default',f='form_wrapper', vars={'a': 'update'}, args=['eventitem' , str(record.id)], user_signature=True)}}', [], 'new_event_item');"> Add items... </a>
         <h4> Event items </h4>
 
@@ -86,7 +72,7 @@
         </div>
         {{if rows:}}
         <div class="alert alert-info" role="alert">To edit an item please click on the corresponding cell below... </div>
-        <table id='event_items' class='table table-striped'>
+        <tableid='event_items' class='table table-striped'>
             <thead>
             <tr>
                 <th>Description</th>
@@ -109,8 +95,37 @@
             </tbody>
         </table>
         {{pass}}
+        {{elif view_mode == 'table':}}
+        <h4> Dataset </h4>
+        {{IGNORE_COLUMNS = ['id', 'edatetime', 'created_by']}}
+        {{COLUMN_LIST = [key for key in df.columns if key not in IGNORE_COLUMNS]}}
+        {{COLUMN_LIST.insert(0, 'edatetime')}}
+        <div class="alert alert-info" role="alert">To edit an item please click on the corresponding cell below... </div>
+        <table id='event_items_table' class='table table-striped'>
+            <thead>
+            <tr>
+                        <th> Date / time  </th>
+                {{for key in COLUMN_LIST[1:]:}}
+                        <th> {{=key}}  </th>
+                {{pass}}
+            </tr>
+            </thead>
+            <tbody>
+                {{for idx in df.index:}}
+                <tr id='df_index_{{=idx}}'>
+                    <td > {{=df.loc[idx,'edatetime'].strftime('%d %b %Y / %H:%M')}} </td>
+                    {{for column in COLUMN_LIST[1:]:}}
+                    <td class='ei_value' id='ei_value_{{=lookup.loc[idx,column]}}' > {{=df.loc[idx, column]}} </td>
+                    {{pass}}
+                </tr>
+                {{pass}}
+            </tbody>
+        </table>
+
+        {{pass}}
         <script type='text/javascript' >
             $(function() {
+                {{if view_mode == 'default':}}
                     $('.ei_description').editable("{{=URL(c='api', f='jeditable')}}",{
                         submit  : 'OK',
                         type : 'textarea',
@@ -118,6 +133,7 @@
                         rows: 2,
                         cssclass: 'form-inline'
                         });
+                 {{pass}}
 
                     $('.ei_value').editable("{{=URL(c='api', f='jeditable')}}",{
                         submit  : 'OK',

@@ -1,5 +1,5 @@
 <div id='{{=form_name}}' class='dl-outer-{{=table}}'> 
-    {{if table == 'tag_events':}}
+    {{if table == 'tag_events' and not readonly:}}
     <div style='margin-top: 5px;'> Tags: </div> 
     {{pass}}
     <div> 
@@ -23,9 +23,12 @@ $(document).ready(function () {
                     },
                 onDelete: function(item) {
                     ajax("{{=XML(URL(c='api', f='manage_tags', args=['delete'], vars={'table': table, 'parent_id': parent_id}))}}" +'&tag_id='+ item.id, [], ':eval');
-                    }
-
+                    },
                 });
+        {{if readonly:}}
+        $("#{{=form_name}} .token-input-delete-token").hide();
+        $("#{{=form_name}} .token-input-input-token").hide();
+        {{pass}}
 
 });
 </script>

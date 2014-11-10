@@ -31,7 +31,7 @@ response.menu = [
     (T('Home'), False, URL('default', 'index'), []),
     (T('Events'), False, URL('default', 'index'), [
         ('All events', False, URL('default', 'all_days')),
-        ('Top 10 events', False, URL('default', 'top_events')),
+        ('Top 10 events', False, URL('default', 'index', vars={'sortby': 'popular'})),
           ]),
     (T('Visualize'), False, URL('viz', 'index'), [])
 ]
