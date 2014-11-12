@@ -20,7 +20,7 @@ def wrapper():
     import string
     def random_string(length=8, chars=string.letters + string.digits):
         return ''.join([random.choice(chars) for i in range(length)])
-    q = db.algorithms.id>0
+    q = db.algorithms.status=='validated'
     if not is_admin:
         q &= ((db.algorithms.created_by == auth.user_id) | (db.algorithms.visibility == 'public'))
     elif session.imp_user:
