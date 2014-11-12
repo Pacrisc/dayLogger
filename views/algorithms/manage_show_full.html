@@ -1,0 +1,66 @@
+{{extend 'layout.html'}}
+
+<div class='daylogger'>
+    <div class='dl_event dl_algorithm'>
+    
+    <ul class="breadcrumb">
+        <li><a href="{{=URL(c='default', f='index')}}">Home</a></li>
+        <li>Curent algorithm</li>
+    </ul>
+            <div class="btn-toolbar dl_crud_toolbar pull-right">
+                <div class="btn-group"> 
+                    {{BTN_STATUS = {'pending': 'warning', 'validated': 'success', 'forbidden': 'danger'} }}
+                    {{LABEL_STATUS = {'pending': 'warning', 'validated': 'success', 'forbidden': 'important'} }}
+                    {{if is_admin:}}
+                    <a class="btn btn-small btn-{{=BTN_STATUS[record.status]}} dropdown-toggle" data-toggle="dropdown">
+                        <i class="icon-list"></i> <span class='btn-label'> {{=record.status}} </span>
+                         <span class="caret"></span>
+                     </a>
+                     <ul class="dropdown-menu">
+                         <li><a href="javascript:void(0);" onclick="ajax('{{=URL(c='algorithms', f='authorize', args=['validated'], user_signature=True)}}', [], ':eval');">Validate</a></li>
+                         <li><a href="javascript:void(0);" onclick="ajax('{{=URL(c='algorithms', f='authorize', args=['forbidden'], user_signature=True)}}', [], ':eval');">Forbid</a></li>
+                     </ul>
+                     {{pass}}
+                    <a class='btn btn-small' href='{{=URL(c='algorithms', f='manage', args=[record.id], vars={'a': 'update'})}}'>
+                        <i class="icon-edit"></i>Edit</a>
+                    <a class='btn btn-small' href='javascript:void(0);' onclick="ajax('{{=URL(c='algorithms', f='manage', args=[record.id], vars={'a': 'delete'}, user_signature=True)}}', [], ':eval')">
+                        <i class="icon-trash"></i> Delete </a>
+                </div>
+            </div>
+            <span class='label label-info pull-right'>{{=record.visibility is not None and record.visibility or ' '}} </span>
+            {{if not is_admin:}}
+            <span class='label label-{{=BTN_STATUS[record.status]}} pull-right'>{{=record.status}} </span>
+            {{pass}}
+        <h3 > {{=record.title}}
+        </h3>
+        <div class='auth_info'> 
+            {{if is_admin:}}
+            <span class='last_modified'> Created {{=prettydate(record.created_on, T)}} by {{=record.created_by.email}}, last modified {{=prettydate(record.modified_on, T)}} by {{=record.modified_by.email}} </span>
+            {{else:}}
+            <span class='last_modified'> Created {{=prettydate(record.created_on, T)}}, last modified {{=prettydate(record.modified_on, T)}}</span>
+            {{pass}}
+        </div/>
+
+        <div id='algorithms-description'>
+            {{=record.description}}
+        </div>
+
+        <div id='algorithms-code' class='code-editor'>{{=record.code}}</div>
+        <script src="//ajaxorg.github.io/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+        <script type='text/javascript' >
+            var code = $('#algorithms-code').text(); 
+            console.log(code);
+            var editor = ace.edit('algorithms-code');
+            editor.setTheme("ace/theme/texmate");
+            editor.getSession().setMode("ace/mode/python");
+            editor.setReadOnly(true);
+            editor.session.setValue(code);
+            editor.setOptions({
+                    maxLines: 15
+            });
+            editor.container.style.width = "300px";
+            editor.resize();
+        </script>
+   
+    <div>
+</div>

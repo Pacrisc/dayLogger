@@ -1,0 +1,48 @@
+{{extend 'layout.html'}}
+<div id='dl_algorithm_form'>
+    {{if action == 'create':}}
+    <h3> New algorithm </h3>
+    {{elif action == 'update':}}
+    <h3> Update algorithm </h3>
+    <ul class="breadcrumb">
+        <li><a href="{{=URL(c='default', f='index')}}">Home</a></li>
+        <li>Home</li>
+    </ul>
+    {{pass}}
+    {{=form}}
+
+<div>
+<script src="//ajaxorg.github.io/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script type='text/javascript' >
+    //var editor = ace.edit("algorithms_code");
+
+    $('textarea#algorithms_description').attr('rows', 4)
+                                   .removeAttr('cols');
+    $('#algorithms_id__row').hide();
+    var textArea = document.getElementById('algorithms_code')
+    var textArea_jq = $(textArea);
+    //console.log(textArea);
+    // create new ace instance
+    var editor = ace.edit(document.createElement("div"));
+    editor.session.setValue(textArea.value);
+    // set size
+    editor.container.style.height = textArea.clientHeight + "px";
+    editor.container.style.width = textArea.clientWidth + "px";
+    // replace textarea with the editor
+    textArea.parentNode.appendChild(editor.container)
+    // trigger redraw of the editor
+    editor.resize();
+    editor.setTheme("ace/theme/texmate");
+    editor.getSession().setMode("ace/mode/python");
+    editor.setOptions({
+            maxLines: 15
+    });
+    editor.getSession().on('change', function(){
+          $('#algorithms_code').val(editor.getSession().getValue());
+          //console.log($('#algorithms_code').text());
+    });
+
+    editor.container.style.margin = '10px 0';
+    textArea_jq.hide();
+
+</script>

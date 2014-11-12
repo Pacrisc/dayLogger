@@ -4,7 +4,6 @@
 # Local changes should not be commited and can be ignored e.g. with
 # git update-index --assume-unchanged ./000_private.py
 
-DB_LOGIN = 'mysql://user:password@localhost/database_name'
-
+DB_LOGIN = 'sqlite://storage.sqlite'
 EMAIL_SENDER = 'you@gmail.com'
 EMAIL_LOGIN = 'username:password'

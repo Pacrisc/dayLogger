@@ -135,3 +135,28 @@ li.token-input-token {
 .dl_event_summary .dl-outer-tag_events {
     margin-right: 5px;
 }
+
+.dl_event.dl_algorithm > .label {
+    margin-top: 15px;
+    margin-right: 6px;
+
+}
+
+/*
+#nalgorithms-code { 
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+*/
+.code-editor {
+    margin-left: 10px;
+    margin-top:  20px;
+}
+
+.algorithms-description {
+    padding-left: 10px;
+}
+
