@@ -21,9 +21,10 @@
                          <li><a href="javascript:void(0);" onclick="ajax('{{=URL(c='algorithms', f='authorize', args=['forbidden'], user_signature=True)}}', [], ':eval');">Forbid</a></li>
                      </ul>
                      {{pass}}
-                    <a class='btn btn-small' href='{{=URL(c='algorithms', f='manage', args=[record.id], vars={'a': 'update'})}}'>
+                     {{is_owner = has_item_permission(record)}}
+                     <a class='btn btn-small {{=not is_owner and 'disabled' or ''}}' href='{{=is_owner and URL(c='algorithms', f='manage', args=[record.id], vars={'a': 'update'}) or 'javascript:void(0)'}}'>
                         <i class="icon-edit"></i>Edit</a>
-                    <a class='btn btn-small' href='javascript:void(0);' onclick="ajax('{{=URL(c='algorithms', f='manage', args=[record.id], vars={'a': 'delete'}, user_signature=True)}}', [], ':eval')">
+                     <a class='btn btn-small {{=not is_owner and 'disabled' or ''}}' href='javascript:void(0);' {{if is_owner:}}onclick="ajax('{{=URL(c='algorithms', f='manage', args=[record.id], vars={'a': 'delete'}, user_signature=True)}}', [], ':eval')"{{pass}}>
                         <i class="icon-trash"></i> Delete </a>
                 </div>
             </div>
@@ -33,13 +34,7 @@
             {{pass}}
         <h3 > {{=record.title}}
         </h3>
-        <div class='auth_info'> 
-            {{if is_admin:}}
-            <span class='last_modified'> Created {{=prettydate(record.created_on, T)}} by {{=record.created_by.email}}, last modified {{=prettydate(record.modified_on, T)}} by {{=record.modified_by.email}} </span>
-            {{else:}}
-            <span class='last_modified'> Created {{=prettydate(record.created_on, T)}}, last modified {{=prettydate(record.modified_on, T)}}</span>
-            {{pass}}
-        </div/>
+        {{include "last_modified.html"}}
 
         <div id='algorithms-description'>
             {{=record.description}}

@@ -102,4 +102,20 @@ def autocomplete_tags():
                 out.append({'id': row.id, 'name': row.name})
     return dict(data=out)
 
+def autocomplete_events():
+    import re
+    query = request.vars.query
+    res = {"query": query}
+    if query:
+        q = db.events.title.contains(query)
+        if not is_admin:
+            q &= db.events.created_by == auth.user_id
+        elif session.imp_user:
+            q &= db.events.created_by == session.imp_user.id
 
+        rows  = db(q).select(db.events.title, db.events.id, db.events.parent_id, limitby=(0,10), groupby=db.events.parent_id)
+        suggestions = []
+        for row in rows:
+            suggestions.append({'value': row.title, 'data': row.parent_id})
+        res['suggestions'] = suggestions
+    return dict(data=res)

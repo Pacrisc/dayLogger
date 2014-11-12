@@ -97,9 +97,8 @@ def manage():
 
         if record is None:
             response.flash = 'Something went wrong!'
-        rows = db(db.event_items.parent==record.id).select()
-        context = dict(record=record, form=form, rows=rows, **vargs)
-        if view_mode in ['default', 'table']:
+        context = dict(record=record, form=form, **vargs)
+        if view_mode in ['default']:
             return  response.render('algorithms/manage_show_full.html',  context)
         elif view_mode == 'summary':
             return  response.render('algorithms/manage_show_summary.html', context)

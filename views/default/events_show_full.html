@@ -26,13 +26,8 @@
             <button type="button" class="btn btn-info">{{=record.edate.strftime('%d %b %Y')}}  {{=record.etime.strftime('%I:%M %p')}}</button>
             {{pass}}
             {{=record.title}}</h3>
-        <div class='auth_info'> 
-            {{if is_admin:}}
-            <span class='last_modified'> Created {{=prettydate(record.created_on, T)}} by {{=record.created_by.email}}, last modified {{=prettydate(record.modified_on, T)}} by {{=record.modified_by.email}} </span>
-            {{else:}}
-            <span class='last_modified'> Created {{=prettydate(record.created_on, T)}}, last modified {{=prettydate(record.modified_on, T)}}</span>
-            {{pass}}
-        </div/>
+
+        {{include "last_modified.html"}}
 
         {{if events_count>1:}}
         <div class="alert alert-info group-event-info" role="alert">

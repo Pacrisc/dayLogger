@@ -15,17 +15,26 @@ def index():
 def bar_plot():
     return dict()
 
-def scatter_plot():
+def wrapper():
     import random
     import string
     def random_string(length=8, chars=string.letters + string.digits):
         return ''.join([random.choice(chars) for i in range(length)])
+    q = db.algorithms.id>0
+    if not is_admin:
+        q &= ((db.algorithms.created_by == auth.user_id) | (db.algorithms.visibility == 'public'))
+    elif session.imp_user:
+        q &= ((db.algorithms.created_by == session.imp_user.id) | (db.algorithms.visibility == 'public'))
 
-    return dict(pageid=random_string(10))
+    algos = db(q).select(db.algorithms.ALL, orderby=db.algorithms.title)
 
-def scatter_plot_data():
+    return dict(algos=algos, pageid=random_string(10))
+
+def data():
     from itertools import cycle
     import calendar
+    import re
+    from applications.dayLogger.modules.algorithm_setup import createFunction
 
     if session.imp_user:
         user_id = session.imp_user.id
@@ -38,7 +47,7 @@ def scatter_plot_data():
     if session_page in session:
         mquery = session[session_page]
     else:
-        mquery = {'end': None, 'begin': None, 'tags': []}
+        mquery = {'end': None, 'begin': None, 'tags': [], 'group_id': None, 'algorithm': None}
         session[session_page] = mquery
     #try:
     if request.vars.begin_date:
@@ -54,26 +63,66 @@ def scatter_plot_data():
     #except Exception:
     #    raise HTTP(403)
 
-    res = db_query_as_dict(user_id, mquery['begin'], mquery['end'], mquery['tags'])
+    if request.vars.group_id:
+        mquery['group_id'] = int(request.vars.group_id)
 
-    shapes = cycle(['circle', 'cross', 'triangle-up', 'triangle-down', 'diamond', 'square'])
-    data = []
-    tags = []
-    for row in res:
+    if request.vars.algorithm:
+        if request.vars.algorithm.isdigit():
+            mquery['algorithm'] = int(request.vars.algorithm)
+        else:
+            mquery['algorithm'] = None
+
+    if mquery['algorithm'] is None:
+        # exit and don't do anything
+        return dict(data={'data': None, 'ready': False , 'tags': []})
+    algo = db.algorithms(mquery['algorithm'])
+    if algo is None:
+        raise HTTP(403)
+
+    # creating user function in a sandbox
+    func = createFunction(algo.code, 'x')
+
+    res_list = db_query_as_dict(user_id=user_id, group_id=mquery['group_id'],
+                      begin_date=mquery['begin'], end_date=mquery['end'], tags=mquery['tags'],
+                      view='DataFrame')
+
+    if mquery['group_id'] is not None:
+        res_list = [res_list]
+    dataset = []
+    for res in res_list:
+        out = {'key': res['title']}
+        df = res['items']
+        try:
+            serie =  func(df)
+        except:
+            # an error was raised when executing this function, ignore this dataset
+            continue
         values = []
-        for item in row['items']:
-            out = {}
-            edate = strptime(row['edatetime'], '%Y-%m-%d %H:%M:%S')
+        for idx, y in serie.iteritems():
+            values.append({'x': calendar.timegm(df.loc[idx, 'edatetime'].utctimetuple())*1000, 'y': y})
+        
+        out['values'] = sorted(values, key=lambda x: x['x'])
+        dataset.append(out)
 
-            out['x'] = calendar.timegm(edate.utctimetuple())*1000
-            out['y'] = item['value']
-            out['label'] = item['description']
-            out['shape'] = shapes.next()
-            values.append(out)
-            tags += row['tags']
-        data.append({'key': row['title'], 'values': values, 'tags': row['tags']}) 
-    tags = list(set(tags))
-    return dict(data={'data': data, 'tags': tags})
+    return dict(data= {'data': dataset, 'ready': True, 'tags': [], 'algorithm': {'title': algo.title}})
+    #shapes = cycle(['circle', 'cross', 'triangle-up', 'triangle-down', 'diamond', 'square'])
+    #data = []
+    #tags = []
+    #for row in res:
+    #    values = []
+    #    for item in row['items']:
+    #        out = {}
+    #        edate = strptime(row['edatetime'], '%Y-%m-%d %H:%M:%S')
+
+    #        out['x'] = calendar.timegm(edate.utctimetuple())*1000
+    #        out['y'] = item['value']
+    #        out['label'] = item['description']
+    #        out['shape'] = shapes.next()
+    #        values.append(out)
+    #        tags += row['tags']
+    #    data.append({'key': row['title'], 'values': values, 'tags': row['tags']}) 
+    #tags = list(set(tags))
+    #return dict(data={'data': data, 'tags': tags})
 
 
 

@@ -25,11 +25,8 @@
         {{pass}}
 
         <h3 onclick='window.location.href= "{{=URL(c='algorithms', f='manage', args=[record.id], vars={'a': 'show', 'view': 'default'})}}"'> {{=record.title}}</h3>
-        <div class='auth_info'> 
-            {{if is_admin:}}
-            <span class='last_modified'> Created {{=prettydate(record.created_on, T)}} by {{=record.created_by.email}}, last modified {{=prettydate(record.modified_on, T)}} by {{=record.modified_by.email}} </span>
-            {{pass}}
-        </div/>
+        {{include "last_modified.html"}}
+
         <div class='algorithm-description'>
             {{=record.description}}
         </div>

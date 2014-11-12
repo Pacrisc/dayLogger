@@ -54,9 +54,9 @@ def db_query_as_dict(user_id=None, group_id=None, begin_date=None, end_date=None
 
     if tags:
         tags_ids = db(db.tags.name.belongs(tags)).select().as_dict().keys()
-        q &= db.tag_event_items.parent==db.event_items.id
+        #q &= db.tag_event_items.parent==db.event_items.id
         q &= db.tag_events.parent==db.events.id
-        q &= (db.tag_events.tag.belongs(tags_ids) | db.tag_event_items.tag.belongs(tags_ids))
+        q &= (db.tag_events.tag.belongs(tags_ids)) #| db.tag_event_items.tag.belongs(tags_ids))
 
 
     # get id of all the events in the query
