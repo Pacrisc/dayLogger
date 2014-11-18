@@ -1,0 +1,14 @@
+
+<div class='auth_info'> 
+{{if is_admin:}}
+<span class='last_modified'> 
+{{if record.created_by.id == record.modified_by.id:}}
+Created {{=prettydate(record.created_on, T)}}, last modified {{=prettydate(record.modified_on, T)}} by {{=record.modified_by.email}}
+{{else:}}
+Created {{=prettydate(record.created_on, T)}} by {{=record.created_by.email}}, last modified {{=prettydate(record.modified_on, T)}} by {{=record.modified_by.email}}
+{{pass}}
+</span>
+{{else:}}
+<span class='last_modified'> Created {{=prettydate(record.created_on, T)}}, last modified {{=prettydate(record.modified_on, T)}}</span>
+{{pass}}
+</div/>

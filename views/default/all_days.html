@@ -1,0 +1,29 @@
+{{extend 'layout.html'}}
+
+
+<a class='btn btn-small pull-right' href='{{=URL(c='default',f='events',vars={'a': 'create', 'day_date': datetime.datetime.today().strftime('%Y-%m-%d')}, user_signature=True )}}' > <i class='icon-plus'></i> Add events</a>
+<h2>List of days</h2>
+
+<div class='daylogger'>
+
+
+
+<ul class='days nav nav-list'>
+    {{for row in rows:}}
+    <li>
+    <a href={{=URL(c='default', f='day', args=[row.events.edate])}}>
+            {{=row.events.edate.strftime('%d %b %Y')}}
+            {{if is_admin and not session.imp_user:}}
+            [{{=row.events.created_by.email}}]
+            {{pass}}
+            {{num_events =  row[count_op]}} 
+            <span class="badge">{{=row[count_op]}}</span>
+        </a> 
+        </li>
+    {{pass}}
+
+</ul>
+
+
+
+</div>

@@ -1,0 +1,31 @@
+{{extend 'layout.html'}}
+<div id='dl_event_form'>
+    {{if action == 'create':}}
+    <h3> New event </h3>
+    {{elif action == 'update':}}
+    <h3> Update event </h3>
+    <ul class="breadcrumb">
+        <li><a href="{{=URL(c='default', f='index')}}">Home</a></li>
+        <li><a href='#'>{{=record.edate.strftime('%d %b %Y')}}</a></li>
+        <li>Home</li>
+    </ul>
+    {{pass}}
+    {{=form}}
+
+<div>
+<script type='text/javascript' >
+    $(function() {
+       $('textarea#events_description').attr('rows', 4)
+                                       .removeAttr('cols');
+       $('input#events_edate').addClass('input-small')
+                              .removeClass('span4');
+       $('input#events_etime').addClass('input-small')
+                             .removeClass('span4');
+
+        $('#events_id__row').hide();
+        $('#events_etime').timepicker();
+       // Hacking the default web2py form to put date and time inputs on the same row 
+       //$("#dl_event_form #submit_record__row").before("<div id='events_edatetime__row' class='control-group'></div>");
+       //$('#events_edatetime__row').html($('#events_edate__row').html() + $('#events_etime__row').html());
+    });
+</script>

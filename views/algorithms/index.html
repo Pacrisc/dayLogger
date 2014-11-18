@@ -1,0 +1,34 @@
+{{extend 'layout.html'}}
+
+
+ <div class="btn-toolbar dl_crud_toolbar pull-right">
+    <div class="btn-group"> 
+        <a class='btn btn-small' href='{{=URL(c='algorithms',f='manage',vars={'a': 'create'}, user_signature=True )}}' > <i class='icon-plus'></i> Add algorithm </a>
+         <a class="btn btn-small dropdown-toggle" data-toggle="dropdown">
+             <i class="icon-list"></i>Sort by
+             <span class="caret"></span>
+         </a>
+         <ul class="dropdown-menu">
+             <li><a href="{{=URL(c='algorithms', f='index', vars={'sortby': 'name'})}}"><i class="icon-{{=sortby=='name' and 'ok' or 'minus'}}"></i>Name</a></li>
+             <li><a href="{{=URL(c='algorithms', f='index', vars={'sortby': 'last'})}}"><i class="icon-{{=sortby=='last' and 'ok' or 'minus'}}"></i>Date</a></li>
+             {{if is_admin:}}
+             <li><a href="{{=URL(c='algorithms', f='index', vars={'sortby': 'pending'})}}"><i class="icon-{{=sortby=='pending' and 'ok' or 'minus'}}"></i>Pending validation</a></li>
+             {{pass}}
+
+         </ul>
+    </div>
+ </div>
+
+<h1>Algorithms</h1>
+
+<div class='daylogger'>
+
+{{for row in rows:}}
+{{=LOAD(c='algorithms', f='manage', args=[row.id], vars={'a': 'show', 'view': 'summary'}, ajax=True)}}
+{{pass}}
+
+<script src="//ajaxorg.github.io/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+
+
+
+</div>

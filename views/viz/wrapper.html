@@ -1,0 +1,124 @@
+
+
+<h4> Filter options </h4>
+<form class="form-viz form-inline filter-form" style='margin-left: 2em;'>
+   <div class="form-group">
+      <label for="group_id" style='min-width: 5em;' >Event</label>
+      <input type="text" class="form-control input-large edate" id="group_id" 
+         placeholder="Enter event">
+   </div>
+   <div class="form-group">
+      <label for="begin_date" style='min-width: 5em;' >Begin date</label>
+      <input type="text" class="form-control input-small edate" id="begin_date" 
+         placeholder="Enter date">
+   </div>
+   <div class="form-group" >
+      <label for="end_date" style='min-width: 5em;' >End date</label>
+      <input type="text" class="form-control input-small edate" id="end_date" 
+         placeholder="Enter date">
+   </div>
+   <div class="form-group" >
+      <label for="tags_input" style='min-width: 5em; float: left;' >Tags</label>
+      <div style='float: left;'>
+      <input type="text" class="form-control input-small" id="tags_input" 
+         style='float: left;' placeholder="Enter tags">
+      </div>
+      <div style='clear: both;'></div>
+   </div>
+   <div class="form-group" >
+      <label for="algorithm_input" style='min-width: 5em; float: left;' >Algorithm</label>
+      <div style='float: left;'>
+       <select id='algorithm_input'>
+           <option value="None"></option>
+           {{for el in algos:}}
+           <option value="{{=el.id}}">{{=el.title}}</option>
+           {{pass}}
+        </select> 
+      </div>
+      <div style='clear: both;'></div>
+   </div>
+
+</form>
+
+<div id='nv3d-daylogger'>
+</div>
+<script type='text/javascript' >
+$(function(){
+    var ac = $('#group_id').autocomplete({
+            serviceUrl:"{{=URL('api', 'autocomplete_events.json')}}",
+            minChars:2,
+            delimiter: /(,|;)\s*/, // regex or character
+            //maxHeight:400,
+            //width:300,
+            zIndex: 9999,
+            deferRequestBy: 0, //miliseconds
+            //params: { country:'Yes' }, //aditional parameters
+            noCache: false, //default is false, set to true to disable caching
+            onSelect: function(value, data){ d3_plot_update({group_id: value['data']})}
+        });
+    var checkout_begin = $('#begin_date').datepicker({
+            format: 'mm/dd/yyyy'})
+             .on('changeDate', function(ev) {
+                    checkout_begin.datepicker('hide');
+                    d3_plot_update({begin_date: checkout_begin[0].value})
+                });
+
+    var checkout_end = $('#end_date').datepicker()
+                 .on('changeDate', function(ev) {
+                        checkout_end.datepicker('hide');
+                        d3_plot_update({end_date: checkout_end[0].value})
+                    });
+    var algo_input = $('#algorithm_input').on('change', function(ev) {
+                        d3_plot_update({algorithm: algo_input[0].value});
+                    });
+
+
+    var res = $("#tags_input").tokenInput(
+                    "{{=URL(c='api', f='autocomplete_tags.json', vars={'parent_id': -1})}}", 
+                    {
+                    //jsonContainer: 'data',
+                    preventDuplicates: true,
+                    minChars: 2,
+                    onAdd: function(item) {
+                        d3_plot_update({tag: item.name, action: 'add'})
+                        },
+                    onDelete: function(item) {
+                        d3_plot_update({tag: item.name, action: 'delete'})
+                        }
+
+                    });
+    $('.filter-form div ul.token-input-list input').attr('style', 'border: 1px solid #CCC;');
+
+    var w=620
+        h=400
+        svg=d3.select("#nv3d-daylogger")
+        data=false
+        chart=false
+        is_initialised=false;
+    
+    {{include 'viz/line_plot.js'}}
+
+    function d3_plot_update(args) {
+        var murl = "{{=URL(c='viz', f='data.json', vars={'page':pageid})}}" +'&'+ $.param(args);
+
+        d3.json(murl, function(error, json) {
+            if (error) return console.warn(error);
+            data = json;
+            if (data.ready) {
+                if (!is_initialised) {
+                       d3_plot_init();
+                       console.log('doing init!')
+                } else {
+                    console.log('redrawing data!')
+                   d3_plot_redraw();
+                }
+            }
+
+        });
+
+    }
+    
+});
+</script>
+
+

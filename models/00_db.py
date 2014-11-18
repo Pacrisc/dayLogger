@@ -12,7 +12,7 @@ from gluon.tools import prettydate
 import datetime
 from imageutils import THUMB
 
-db = DAL('mysql://web2py:pheen3zoog4Uboojiilo@localhost/daylogger',             #'sqlite://storage.sqlite',
+db = DAL(DB_LOGIN,             #'sqlite://storage.sqlite',
         pool_size=1,check_reserved=['mysql'])
 
 ## by default give a view/generic.extension to all actions from localhost
@@ -49,8 +49,8 @@ auth.define_tables(username=False, signature=False)
 ## configure email
 mail = auth.settings.mailer
 mail.settings.server = 'logging' if request.is_local else 'smtp.gmail.com:587'
-mail.settings.sender = 'you@gmail.com'
-mail.settings.login = 'username:password'
+mail.settings.sender = EMAIL_SENDER
+mail.settings.login = EMAIL_LOGIN
 
 ## configure auth policy
 auth.settings.registration_requires_verification = False
@@ -64,10 +64,13 @@ hidden = {'readable': False, 'writable': False}
 db.define_table('events',
     Field('title', 'string', requires=IS_NOT_EMPTY()),
     Field('description', 'text', requires=IS_NOT_EMPTY()),
+    Field('comment', 'text', **hidden),
     Field('edate', 'date', label='Date', requires=IS_DATE()),
     Field('etime', 'time', label='Time', requires=IS_TIME()),
     Field('edatetime', compute=lambda r: datetime.datetime.combine(r['edate'],r['etime'])),
     #Field('edatetime2s', compute=lambda r: r['edatetime'].strftime('%s') ),
+    Field('parent_id', 'reference events', **hidden),
+    #Field.Virtual('parent_id_true', lambda row: row['parent_id'] is not None and row['parent_id'] or row['id']),
     auth.signature
     )
 
@@ -77,7 +80,7 @@ db.events.edate.widget = SQLFORM.widgets.date.widget
 db.define_table('event_items',
     Field('parent', 'reference events', **hidden),
     Field('description', 'string', requires=IS_NOT_EMPTY()),
-    Field('value', 'integer', requires=IS_NOT_EMPTY())
+    Field('value', 'double', requires=IS_NOT_EMPTY())
     )
 
 db.define_table('tags',
@@ -102,6 +105,15 @@ db.define_table('pictures',
     auth.signature
     )
 db.pictures.thumb.compute = lambda row: THUMB(row.mainfile, 200, 200)
+
+db.define_table('algorithms',
+    Field('title', 'string', requires=IS_NOT_EMPTY()),
+    Field('description', 'text'),
+    Field('code', 'text'),
+    Field('status', 'string', default='pending', **hidden),
+    Field('visibility', 'string', requires=IS_IN_SET(['public', 'private'])),
+    auth.signature
+    )
 
 ## if you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.
 ## register with janrain.com, write your domain:api_key in private/janrain.key

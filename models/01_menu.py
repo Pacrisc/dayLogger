@@ -28,7 +28,11 @@ response.google_analytics_id = None
 #########################################################################
 
 response.menu = [
-    (T('Home'), False, URL('default', 'index'), []),
+    (T('Home'), False, URL('default', 'index'), [
+        ('All events', False, URL('default', 'all_days')),
+        ('Top 10 events', False, URL('default', 'index', vars={'sortby': 'popular'})),
+          ]),
+    (T('Algorithms'), False, URL('algorithms', 'index'), []),
     (T('Visualize'), False, URL('viz', 'index'), [])
 ]
 

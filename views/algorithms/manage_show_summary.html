@@ -1,0 +1,49 @@
+    <div class='dl_event dl_event_summary dl_algorithm'>
+    
+        <div class="btn-toolbar dl_crud_toolbar pull-right">
+            <div class="btn-group"> 
+                    {{BTN_STATUS = {'pending': 'warning', 'validated': 'success', 'forbidden': 'danger'} }}
+                    {{LABEL_STATUS = {'pending': 'warning', 'validated': 'success', 'forbidden': 'important'} }}
+                    {{if is_admin:}}
+                    <a class="btn btn-small btn-{{=BTN_STATUS[record.status]}} dropdown-toggle" data-toggle="dropdown">
+                        <i class="icon-list"></i> <span class='btn-label'> {{=record.status}} </span>
+                         <span class="caret"></span>
+                     </a>
+                     <ul class="dropdown-menu">
+                         <li><a href="javascript:void(0);" onclick="ajax('{{=URL(c='algorithms', f='authorize', args=[record.id, 'validated'], user_signature=True)}}', [], ':eval');">Validate</a></li>
+                         <li><a href="javascript:void(0);" onclick="ajax('{{=URL(c='algorithms', f='authorize', args=[record.id, 'forbidden'], user_signature=True)}}', [], ':eval');">Forbid</a></li>
+                     </ul>
+                     {{pass}}
+                <a class='btn btn-small' href='{{=URL(c='algorithms', f='manage', args=[record.id], vars={'a': 'show', 'view': 'default'})}}'>
+                    <i class="icon-edit"></i>View</a>
+            </div>
+
+        </div>
+        <span class='label label-info pull-right'>{{=record.visibility is not None and record.visibility or ' '}} </span>
+        {{if not is_admin:}}
+        <span class='label label-{{=BTN_STATUS[record.status]}} pull-right'>{{=record.status}} </span>
+        {{pass}}
+
+        <h3 onclick='window.location.href= "{{=URL(c='algorithms', f='manage', args=[record.id], vars={'a': 'show', 'view': 'default'})}}"'> {{=record.title}}</h3>
+        {{include "last_modified.html"}}
+
+        <div class='algorithm-description'>
+            {{=record.description}}
+        </div>
+
+        <div id='algorithms-code-{{=record.id}}' class='code-editor'>{{=record.code}}</div>
+        <script type='text/javascript' >
+            var code = $('#algorithms-code-{{=record.id}}').text(); 
+            console.log(code);
+            var editor = ace.edit('algorithms-code-{{=record.id}}');
+            editor.setTheme("ace/theme/texmate");
+            editor.getSession().setMode("ace/mode/python");
+            editor.setReadOnly(true);
+            editor.session.setValue(code);
+            editor.setOptions({
+                    maxLines: 15
+            });
+            editor.container.style.width = "300px";
+            editor.resize();
+        </script>
+    <div>

@@ -13,6 +13,10 @@ def tags():
         raise HTTP(403)
     table = str(request.vars.table)
     parent_id = int(request.vars.parent_id)
+    if request.vars.readonly is not None:
+        readonly = True
+    else:
+        readonly = False
     form_name = '-'.join([request.vars.table, str(parent_id)])
     q = db[table].parent == parent_id
     q &= db[table].tag == db.tags.id
@@ -30,26 +34,40 @@ def manage_tags():
     parent_id = int(request.vars.parent_id)
     action = request.args[0]
     tag_id = int(request.vars.tag_id)
-    if action == 'add':
-        res = db[table].insert(parent=parent_id, tag=tag_id)
-    elif action == 'delete':
-        q = (db[table].parent==parent_id)
-        q &= (db[table].tag==tag_id)
-        res = db(q).delete()
+    if table == 'tag_event_items':
+        if action == 'add':
+            res = db[table].insert(parent=parent_id, tag=tag_id)
+        elif action == 'delete':
+            q = (db[table].parent==parent_id)
+            q &= (db[table].tag==tag_id)
+            res = db(q).delete()
+    else:
+        record = db.events(parent_id)
+        if not record:
+            raise HTTP(403)
+        id_list = db(db.events.parent_id==record.parent_id).select(db.events.id).as_dict().keys()
+        if action == 'add':
+            res = db[table].bulk_insert([{'parent': idx, 'tag': tag_id} for idx in id_list])
+        elif action == 'delete':
+            q = (db[table].parent.belongs(id_list))
+            q &= (db[table].tag==tag_id)
+            res = db(q).delete()
+
     return res
 
 def jeditable():
     """ This is not secure """
     import re
+    import string
     if request.vars.id:
         _, field, mid = request.vars.id.split('_')
         mid = int(mid)
 
-    sanitize_int = lambda x: int(re.sub('[^0-9+\-]+', '', x))
+    sanitize_int = lambda x: float(re.sub('[^0-9+\-.eE]+', '', x))
     if field in ['description', 'value']:
         if has_item_permission(db.event_items[mid].parent):
             table = 'event_items'
-            sanitize = {'description': str, 'value': sanitize_int }[field]
+            sanitize = {'description': string.strip, 'value': sanitize_int }[field]
         else:
             raise HTTP(403)
 
@@ -84,4 +102,20 @@ def autocomplete_tags():
                 out.append({'id': row.id, 'name': row.name})
     return dict(data=out)
 
+def autocomplete_events():
+    import re
+    query = request.vars.query
+    res = {"query": query}
+    if query:
+        q = db.events.title.contains(query)
+        if not is_admin:
+            q &= db.events.created_by == auth.user_id
+        elif session.imp_user:
+            q &= db.events.created_by == session.imp_user.id
 
+        rows  = db(q).select(db.events.title, db.events.id, db.events.parent_id, limitby=(0,10), groupby=db.events.parent_id)
+        suggestions = []
+        for row in rows:
+            suggestions.append({'value': row.title, 'data': row.parent_id})
+        res['suggestions'] = suggestions
+    return dict(data=res)
